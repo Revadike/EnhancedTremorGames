@@ -16,7 +16,7 @@
 // ==/UserScript==
 
 
-//***************************************************************************** Config
+//***************************************************************************** Configuration
 
 bGiveaways=GM_getValue("bGiveaways");
 bUnsubscribe=GM_getValue("bUnsubscribe");
