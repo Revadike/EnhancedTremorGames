@@ -12,7 +12,7 @@
 // @version     1.0
 // @grant       GM_setValue 
 // @grant       GM_getValue 
-// @author      brenomirandi & Royalgamer06
+// @author      brenomirandi and Royalgamer06
 // ==/UserScript==
 
 
