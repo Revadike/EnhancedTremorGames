@@ -174,7 +174,7 @@ function RemoveOwned() {
 
     if (status_items.length > 0) {
         for (var i = 0; i < status_items.length; i++) {
-            if (status_items[i].innerText == "You already have this item") {
+            if (status_items[i].innerHTML == "You already have this item") {
                 try {
                     status_items[i].parentElement.parentElement.lastChild.lastChild.lastChild.click();
                 } catch(err) {}
