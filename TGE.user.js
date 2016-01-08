@@ -11,7 +11,7 @@
 // @include     http://www.tremorgames.com/editprofiles*
 // @include     http://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.2.1
+// @version     1.2.2
 // @grant       GM_setValue 
 // @grant       GM_getValue 
 // @author      brenomirandi & Royalgamer06
@@ -173,12 +173,16 @@ if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
 
     setInterval(function() {
         if (document.getElementById("UserWishlistItems") !== null) {
-            var attach = document.getElementById("uprofile_content");
-            attach.insertBefore(btn, attach.firstChild);
+            var myuid = readCookie("uid");                
+            var uid = window.location.href.split("/")[4];
+
+            if (myuid == uid) {
+                var attach = document.getElementById("uprofile_content");
+                attach.insertBefore(btn, attach.firstChild);
+            }
 
             if (document.getElementsByClassName("tbl_last sortable")[0] === undefined) {
-                var uid = readCookie("uid");
-                var max = parseInt($("#UserWishlistItems > div > a:nth-child(8) > strong").text());
+                var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
 
                 for (var i = 1; i < max; i++) {
                     var start = 10 * i;
