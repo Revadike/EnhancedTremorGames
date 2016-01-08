@@ -11,7 +11,7 @@
 // @include     http://www.tremorgames.com/editprofiles*
 // @include     http://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.2
+// @version     1.1
 // @grant       GM_setValue 
 // @grant       GM_getValue 
 // @author      brenomirandi & Royalgamer06
@@ -180,7 +180,7 @@ if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
                 var uid = readCookie("uid");
                 var max = parseInt($("#UserWishlistItems > div > a:nth-child(8) > strong").text());
 
-                for (var i = 0; i < max; i++) {
+                for (var i = 1; i < max; i++) {
                     var start = 10 * i;
                     $.get( "http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + start, function( data ) {
                         var $page = $(data)
