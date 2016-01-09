@@ -1,22 +1,23 @@
 // ==UserScript==
-// @name        TGE
+// @name        Tremor Games Enhanced
 // @namespace   TGE
 // @description Tremor Games Enhanced
-// @include     http://www.tremorgames.com/index.php?action=shop*
-// @include     http://www.tremorgames.com/?action=forums*
-// @include     http://www.tremorgames.com/?action=viewforum*
-// @include     http://www.tremorgames.com/?action=viewtopic&topicid=*
-// @include     http://www.tremorgames.com/?action=viewgiveaways*
-// @include     http://www.tremorgames.com/?action=editprofile*
-// @include     http://www.tremorgames.com/editprofiles*
-// @include     http://www.tremorgames.com/profiles*
+// @include     *://www.tremorgames.com/*?action=shop*
+// @include     *://www.tremorgames.com/*?action=forums*
+// @include     *://www.tremorgames.com/*?action=viewforum*
+// @include     *://www.tremorgames.com/*?action=viewtopic&topicid=*
+// @include     *://www.tremorgames.com/*?action=viewgiveaways*
+// @include     *://www.tremorgames.com/*?action=editprofile*
+// @include     *://www.tremorgames.com/*?action=showitem&itemid=*
+// @include     *://www.tremorgames.com/*?action=messages*
+// @include     *://www.tremorgames.com/editprofiles*
+// @include     *://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.2.2
+// @version     1.3
 // @grant       GM_setValue 
 // @grant       GM_getValue 
+// @grant       GM_xmlhttpRequest
 // @author      brenomirandi & Royalgamer06
-// @downloadURL https://github.com/Breno-M/TGE/raw/master/TGE.user.js
-// @updateURL   https://github.com/Breno-M/TGE/raw/master/TGE.user.js
 // ==/UserScript==
 
 
@@ -65,6 +66,19 @@ if(window.location.href.indexOf("editprofile") > -1) {
     else if(bLastpost)
         $('#tge_row1').after('<div class="reg_col5" style="margin-top: 10px;"><button style="width:150px;" onClick="return false;" class="cssbutton" value="toggleP" id="toggleP">Last Post: On</button></div>');
 
+    steamid = ($('div+ a').text()).split('/')[4];
+    document.cookie="steamid=" + steamid + "; path=/";
+} else {
+    var url;
+
+    $.get('http://www.tremorgames.com/?action=editprofile', function(){
+        url = $('div+ a').text();
+    });
+
+    if (url !== undefined) {
+        steamid = url.split('/')[4];
+        document.cookie="steamid=" + steamid + "; path=/";
+    }
 }
 
 $("#reset").click (reset);
@@ -161,18 +175,110 @@ function readCookie(name) {
             return ca[i].replace(name, '');
 }
 
+
+//***************************************************************************** Messages
+if (window.location.href.indexOf("?action=messages") > -1) {
+    $('tr[valign="top"]').prepend('<td width="40" align="center" valign="middle" style="border-bottom:1px solid #E4E4E3;border-right:1px solid #E4E4E3;"><input type="checkbox"></td>');
+    $('#innerbg > div.middle-container > div > div.main_section_box > div.main_section_content > table > tbody > tr:nth-child(1) > td').prepend('<button id="deleteButton" style="background-color: #0F96C8; color: white; position: relative; top: -5px;">DELETE CHECKED</button>');
+
+    var func = "checkboxes = document.querySelectorAll('input[type=\"checkbox\"]'); for (var i = 0; i < checkboxes.length; i++) { checkboxes[i].checked = this.checked; }";
+    document.querySelector('input[type="checkbox"]').setAttribute('onClick', func);
+
+    document.getElementById("deleteButton").addEventListener("click", deleteSelected, false);
+}
+
+function deleteSelected() {
+    var checked = document.querySelectorAll('input[type=checkbox]:checked');
+    $('body').prepend('<img src="http://i.imgur.com/EyqtWKI.gif" style="position: fixed; width: 300px; height: auto; z-index: 1000; left: 40%; top: 40%; ">');
+
+    for (var i = 0; i < checked.length; i++) {
+        var iframe = document.createElement('iframe');
+        iframe.style.display = "none";
+        iframe.src = checked[i].parentNode.parentNode.querySelector('a[onclick="return confirmDeleteMessage()"]').getAttribute("href");
+        if (i == checked.length - 1) {
+            iframe.onload = location.reload();
+        }
+        document.body.appendChild(iframe);
+    }
+}
+
+//***************************************************************************** Shop Item
+if (window.location.href.indexOf("?action=showitem&itemid=") && readCookie("steamid") !== undefined && document.getElementById("productlink") !== null) {
+    var appid = document.getElementById("productlink").getAttribute("href").split("/")[4];
+    var steamid = readCookie("steamid");
+    var owned = false;
+
+    GM_xmlhttpRequest({ 
+        method: 'GET',
+        url: 'http://steamcommunity.com/profiles/' + steamid + '/games/?xml=1',
+        onload: function(data) {
+            var content = data.responseText;
+            owned = (content.toString().indexOf('<appID>' + appid + '</appID>') > -1);
+            if (owned) {
+                var b = '<div style="margin-top: -20px; padding-bottom: 10px;"><b style="font-size: 12px; color: red;">You already own this item on steam!</b></div>';
+                $('.item_purchase').prepend(b);
+            }
+        }        
+    });
+}
+
+//***************************************************************************** Export Items
+
+function expandAll() {
+    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;                
+    var uid = window.location.href.split("/")[4];
+
+    for (var i = 1; i < max; i++) {
+        var start = 10 * i;
+        $.get( "http://www.tremorgames.com/achievements/ajax_show_useritems.php?userid=" + uid + "&limitstart=" + start, function(data) {
+            var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr"); 
+            $( "#UserItems > table.tbl_last > tbody").append(rows);
+        });
+    }
+
+    $("div.ach_paging_ajax").hide();   
+}
+
+if (window.location.href.indexOf("/profiles/") > -1) {
+    var ebtn = document.createElement("button"); 
+    ebtn.setAttribute("id", "btnExportKeys");
+    ebtn.setAttribute("class", "cssbutton");
+    ebtn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
+    ebtn.setAttribute("onClick", "var allnames = $('.txt a'); var allitems = $('.use_item_col span'); var msgWin = window.open('', 'Your Items', 'width=680, height=420'); for (var j = 0; j < allitems.length; j++) { if (allitems[j].innerHTML.match(/[A-NP-RTV-Z02-9]{5}(-[A-NP-RTV-Z02-9]{5}){2}/)) { msgWin.document.writeln(allnames[j].innerHTML + '<br>'); msgWin.document.writeln(allitems[j].innerHTML + '<br><br>'); } }", false);
+    ebtn.innerHTML = "Export steam keys";
+
+    var lbtn = document.createElement("button"); 
+    lbtn.setAttribute("id", "btnExpandAll");
+    lbtn.setAttribute("class", "cssbutton");
+    lbtn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
+    lbtn.addEventListener("click", expandAll, false);
+    lbtn.innerHTML = "Load all pages";
+
+    setInterval(function() {
+        if (document.getElementById("UserItems") !== null && document.getElementById("btnExportKeys") === null && document.getElementById("btnExpandAll") === null) {
+            var myuid = readCookie("uid");                
+            var uid = window.location.href.split("/")[4];
+
+            if (myuid == uid) {
+                $("#uprofile_content").prepend(lbtn);
+                $("#uprofile_content").prepend(ebtn);
+            }
+        }
+    }, 100);
+}
+
 //***************************************************************************** Wishlist
 if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
 
     var btn = document.createElement("button"); 
     btn.setAttribute("id", "btnRemoveOwned");
     btn.setAttribute("class", "cssbutton");
-    btn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;")
+    btn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
     btn.addEventListener("click", RemoveOwned, false);
     btn.innerHTML = "Remove owned items";
 
     setInterval(function() {
-        if (document.getElementById("UserWishlistItems") !== null) {
+        if (document.getElementById("UserWishlistItems") !== null && document.getElementById("btnRemoveOwned") === null) {
             var myuid = readCookie("uid");                
             var uid = window.location.href.split("/")[4];
 
@@ -186,8 +292,7 @@ if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
 
                 for (var i = 1; i < max; i++) {
                     var start = 10 * i;
-                    $.get( "http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + start, function( data ) {
-                        var $page = $(data)
+                    $.get( "http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + start, function(data) {
                         var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr"); 
                         $( "#UserWishlistItems > table.tbl_last > tbody").append(rows);
                     });
@@ -250,7 +355,7 @@ if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
                             table.insertBefore(the,table.firstChild);
                         }
                         // Safari doesn't support table.tHead, sigh
-                        if (table.tHead == null) table.tHead = table.getElementsByTagName('thead')[0];
+                        if (table.tHead === null) table.tHead = table.getElementsByTagName('thead')[0];
 
                         if (table.tHead.rows.length != 1) return; // can't cope with two header rows
 
@@ -265,7 +370,7 @@ if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
                             }
                         }
                         if (sortbottomrows) {
-                            if (table.tFoot == null) {
+                            if (table.tFoot === null) {
                                 // table doesn't have a tfoot. Create one.
                                 tfo = document.createElement('tfoot');
                                 table.appendChild(tfo);
