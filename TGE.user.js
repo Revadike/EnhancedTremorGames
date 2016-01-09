@@ -18,6 +18,8 @@
 // @grant       GM_getValue 
 // @grant       GM_xmlhttpRequest
 // @author      brenomirandi & Royalgamer06
+// @downloadURL https://github.com/Breno-M/TGE/raw/master/TGE.user.js
+// @updateURL 	https://github.com/Breno-M/TGE/raw/master/TGE.user.js
 // ==/UserScript==
 
 
