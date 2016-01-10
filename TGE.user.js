@@ -13,7 +13,7 @@
 // @include     *://www.tremorgames.com/editprofiles*
 // @include     *://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.3
+// @version     1.3.1
 // @grant       GM_setValue 
 // @grant       GM_getValue 
 // @grant       GM_xmlhttpRequest
@@ -246,7 +246,7 @@ if (window.location.href.indexOf("/profiles/") > -1) {
     ebtn.setAttribute("id", "btnExportKeys");
     ebtn.setAttribute("class", "cssbutton");
     ebtn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
-    ebtn.setAttribute("onClick", "var allnames = $('.txt a'); var allitems = $('.use_item_col span'); var msgWin = window.open('', 'Your Items', 'width=680, height=420'); for (var j = 0; j < allitems.length; j++) { if (allitems[j].innerHTML.match(/[A-NP-RTV-Z02-9]{5}(-[A-NP-RTV-Z02-9]{5}){2}/)) { msgWin.document.writeln(allnames[j].innerHTML + '<br>'); msgWin.document.writeln(allitems[j].innerHTML + '<br><br>'); } }", false);
+    ebtn.setAttribute("onClick", "var allnames = $('.txt a'); var allitems = $('.use_item_col span'); var msgWin = window.open('', 'Your Items', 'width=680, height=420'); for (var j = 0; j < allitems.length; j++) { if (!(allitems[j].innerHTML.indexOf('Item Sent') > -1)) { msgWin.document.writeln(allnames[j].innerHTML + '<br>'); var item = allitems[j].innerHTML; if (item.indexOf('http') > -1) { msgWin.document.writeln('<a target=\"_blank\" href=\"' + item + '\">' + item + '</a><br><br>'); } else { msgWin.document.writeln(item + '<br><br>'); } } }", false);
     ebtn.innerHTML = "Export steam keys";
 
     var lbtn = document.createElement("button"); 
