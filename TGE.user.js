@@ -279,7 +279,7 @@ if (window.location.href.indexOf("?action=showitem&itemid=") && readCookie("stea
             if (owned) {
                 var b = '<div style="margin-top: -20px; padding-bottom: 10px;"><b style="font-size: 12px; color: red;">You already own this item on steam!</b></div>';
                 $('.item_purchase').prepend(b);
-            } else {
+            } else if (!owned) {
                 var b = '<div style="margin-top: -20px; padding-bottom: 10px;"><b style="font-size: 12px; color: green;">You do not own this item on steam!</b></div>';
                 $('.item_purchase').prepend(b);                
             }
