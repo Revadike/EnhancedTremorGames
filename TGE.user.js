@@ -1,8 +1,9 @@
 
 // ==UserScript==
-// @name        Tremor Games Enhanced
-// @namespace   TGE
-// @description Tremor Games Enhanced
+// @name        Tremorgames Enhanced
+// @namespace   http://www.tremorgames.com/?action=viewtopic&topicid=79097
+// @icon        http://www.tremorgames.com/templates/tremor/images/favicon.ico
+// @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*?action=shop*
 // @include     *://www.tremorgames.com/*?action=forums*
 // @include     *://www.tremorgames.com/*?action=viewforum*
