@@ -263,7 +263,7 @@ function deleteSelected() {
         iframe.style.display = "none";
         iframe.src = checked[i].parentNode.parentNode.querySelector('a[onclick="return confirmDeleteMessage()"]').getAttribute("href");
         if (i == checked.length - 1) {
-            iframe.onload = location.reload();
+            iframe.onload = setTimeout(function() { location.reload(); }, 1200);
         }
         document.body.appendChild(iframe);
     }
