@@ -14,7 +14,7 @@
 // @include     *://www.tremorgames.com/editprofiles*
 // @include     *://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.3.4
+// @version     1.3.5
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_xmlhttpRequest
@@ -1192,4 +1192,79 @@ function makeSortable() {
             resolve.forEach(object, block, context);
         }
     };
+}
+//***************************************************************************** Text Editor
+if (window.location.href.indexOf("viewtopic&topicid") > -1) {
+
+    areas = document.getElementsByTagName('textarea');
+    commentArea = areas[areas.length - 2];
+
+    $(commentArea).before('<center> \
+<img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img>             \
+<img src="http://i.imgur.com/OMUDRHi.png" id="itaIco" ></img>              \
+<img src="http://i.imgur.com/en3TT2f.png" id="h1Ico" ></img>               \
+<img src="http://i.imgur.com/klDXQh9.png" id="h2Ico" ></img>               \
+<img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img>               \
+<img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img>             \
+<img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img>              \
+                          </center>');
+
+    document.getElementById("boldIco").addEventListener("click",function(){
+        addTag("**", "**");
+    })
+
+    document.getElementById("itaIco").addEventListener("click",function(){
+        addTag("*", "*");
+    })
+
+    document.getElementById("h1Ico").addEventListener("click",function(){
+        addTag("#", "");
+    })
+
+    document.getElementById("h2Ico").addEventListener("click",function(){
+        addTag("####", "");
+    })
+
+    document.getElementById("hrIco").addEventListener("click",function(){
+        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
+        if (sel_txt == "")
+            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + "___" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+        commentArea.focus();
+    })
+
+    document.getElementById("linkIco").addEventListener("click",function(){
+        generateCode(false);
+    })
+    
+    document.getElementById("imgIco").addEventListener("click",function(){
+        generateCode(true);
+    })
+
+    function addTag(prefix, suffix){
+        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
+        if (sel_txt != ""){
+            if(/\s+$/.test(sel_txt))
+                var replace = prefix + sel_txt.slice(0, -1) + suffix + " ";
+            else
+                var replace = prefix + sel_txt + suffix;
+            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + replace + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+        }
+        commentArea.focus();
+    }
+
+    function generateCode(isImage){
+        var url = prompt("Enter the URL: ", "");
+        if(url)
+            var txt = prompt("Enter a text: ", "");
+        else
+            return;
+        var b = "[";
+        if(isImage)
+                 b = "![";
+        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
+        if (sel_txt == "")
+            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+        commentArea.focus();
+    }
+
 }
