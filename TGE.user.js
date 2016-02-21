@@ -1198,6 +1198,8 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
 
     areas = document.getElementsByTagName('textarea');
     commentArea = areas[areas.length - 2];
+    if(isChrome)
+    commentArea = document.getElementById("newcomment");
 
     $(commentArea).before('<center> \
 <img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img>             \
