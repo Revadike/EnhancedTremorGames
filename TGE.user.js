@@ -718,6 +718,7 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
 <img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img>               \
 <img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img>             \
 <img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img>              \
+<img src="http://i.imgur.com/APywE0o.png" id="tableIco" ></img>            \
 </center>');
 
     document.getElementById("boldIco").addEventListener("click",function(){
@@ -750,6 +751,18 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
     document.getElementById("imgIco").addEventListener("click",function(){
         generateCode(true);
     })
+    
+    document.getElementById("tableIco").addEventListener("click",function(){
+        
+        if ($('#tableeditor').length > 0) {
+           alert("Cancel the current table first");
+            return;
+        }
+        
+        var c = prompt("Column quantity: ", "");
+        var r = prompt("Row quantity: ", "");
+        generateTableEditor(c, r);
+    })
 
     function addTag(prefix, suffix){
         var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
@@ -775,6 +788,67 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
         var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
         if (sel_txt == "")
             commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+        commentArea.focus();
+    }
+    
+    function generateTableEditor(cols, rows){
+        
+        var tableEditor = $('<center><table id="tableeditor"><tbody>');
+        for(var r = 0; r < rows; r++)
+        {
+            var tr = $('<tr>');
+            for (var c = 0; c < cols; c++)
+                if(r == 0)
+                   $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
+                else
+                   $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
+            tr.appendTo(tableEditor);
+        }
+        $(commentArea).after(tableEditor);
+        
+        $(tableEditor).after('<br> <center> <p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br> \
+                              <p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center>     \
+                             </center>');
+        
+         document.getElementById("createtable").addEventListener("click",function(){
+              CreateTable(cols, rows);
+          })
+         document.getElementById("canceltable").addEventListener("click",function(){
+              $(tableEditor).remove();
+             $(createtable).remove();
+             $(canceltable).remove();
+             
+          })
+    }
+    
+    function CreateTable(cols, rows){
+               
+        var codeTable="";
+        
+        var tableEditor = document.getElementsByClassName('commentTable');
+        var f = 0;
+        for(var i = 0; i< rows; i++){
+             codeTable += '\n';
+            
+            if(i == 1){
+                
+                var headerLine = "";
+                for(var k = 0; k < cols; k++){
+                    headerLine += "------------- |" 
+                }
+                codeTable += headerLine + '\n';
+            }
+
+             f = i * (cols-1);
+           for(var j = 0; j< cols; j++){
+              codeTable += tableEditor[i+j+f].innerHTML + " | ";
+           }
+        }
+        
+        
+        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
+        if (sel_txt == "")
+            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + codeTable + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
         commentArea.focus();
     }
 
