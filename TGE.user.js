@@ -14,7 +14,7 @@
 // @include     *://www.tremorgames.com/editprofiles*
 // @include     *://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.3.7
+// @version     1.3.8
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_xmlhttpRequest
