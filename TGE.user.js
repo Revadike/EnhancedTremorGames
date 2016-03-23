@@ -258,7 +258,7 @@ function toggleT(){
         bTheme=true;
         document.getElementById("toggleT").innerHTML="Dark Theme: On";
     }
-    else if(bWishlist){
+    else if(bTheme){
         GM_setValue("bTheme", false);
         bTheme=false;
         document.getElementById("toggleT").innerHTML="Dark Theme: Off";
