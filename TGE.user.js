@@ -14,9 +14,10 @@
 // @include     *://www.tremorgames.com/editprofiles*
 // @include     *://www.tremorgames.com/profiles*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.3.8
+// @version     1.3.9
 // @grant       GM_setValue
 // @grant       GM_getValue
+// @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @author      brenomirandi & Royalgamer06
 // @downloadURL https://github.com/Breno-M/TGE/raw/master/TGE.user.js
@@ -41,17 +42,29 @@ bPM=GM_getValue("bPM");
 bInventory=GM_getValue("bInventory");
 bSteam=GM_getValue("bSteam");
 steamID=GM_getValue("steamID");
+bEditor=GM_getValue("bEditor");
+bTheme=GM_getValue("bTheme");
 
 if(window.location.href.indexOf("editprofile") > -1) {
 
     $('div.reg_row:nth-child(18)').after('<div class="reg_row" id="tge_row0"><div class="reg_col1" style="color:#FFB300" width="80%"><b>TGE Features</b></div></div>');
 
     if(!bSteam)
-        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row5"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: Off</button></div></div>');
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row6"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: Off</button></div></div>');
     else if(bSteam)
-        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row5"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: On</button></div></div>');
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row6"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: On</button></div></div>');
 
-    $('#tge_row5').after('<div class="reg_col5" style="margin-top: 10px;"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="reset" id="reset">Reset Subscriptions</button></div>');
+    $('#tge_row6').after('<div class="reg_col5" style="margin-top: 10px;"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="reset" id="reset">Reset Subscriptions</button></div>');
+
+    if(!bEditor)
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row5"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleE" id="toggleE" name="10">Text Editor: Off</button></div></div>');
+    else if(bEditor)
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row5"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleE" id="toggleE" name="10">Text Editor: On</button></div></div>');
+
+    if(!bTheme)
+        $('#tge_row5').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleT" id="toggleT" name="11">Dark Theme: Off</button></div>');
+    else if(bTheme)
+        $('#tge_row5').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleT" id="toggleT" name="11">Dark Theme: On</button></div>');
 
     if(!bWishlist)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">Wishlist: Off</button></div></div>');
@@ -115,6 +128,8 @@ $("#toggleS").click(toggleS);
 $("#toggleW").click(toggleW);
 $("#togglePM").click(togglePM);
 $("#toggleI").click(toggleI);
+$("#toggleE").click(toggleE);
+$("#toggleT").click(toggleT);
 $("#toggleSteam").click(toggleSteam);
 
 function toggleSteam(){
@@ -225,9 +240,53 @@ function toggleW(){
         document.getElementById("toggleW").innerHTML="Wishlist: Off";
     }
 }
+function toggleE(){
+    if(!bEditor){
+        GM_setValue("bEditor", true);
+        bEditor=true;
+        document.getElementById("toggleE").innerHTML="Text Editor: On";
+    }
+    else if(bEditor){
+        GM_setValue("bEditor", false);
+        bEditor=false;
+        document.getElementById("toggleE").innerHTML="Text Editor: Off";
+    }
+}
+function toggleT(){
+    if(!bTheme){
+        GM_setValue("bTheme", true);
+        bTheme=true;
+        document.getElementById("toggleT").innerHTML="Dark Theme: On";
+    }
+    else if(bWishlist){
+        GM_setValue("bTheme", false);
+        bTheme=false;
+        document.getElementById("toggleT").innerHTML="Dark Theme: Off";
+    }
+}
 function reset(){
     GM_setValue("blocklist", null);
     $('#reset').text('Done!');
+}
+
+//***************************************************************************** Dark Theme
+
+if (bTheme) {
+    var css = 'html {-webkit-filter: invert(100%);' +
+        '-moz-filter: invert(100%);' + 
+        '-o-filter: invert(100%);' + 
+        '-ms-filter: invert(100%); } ' + 
+
+        'img {-webkit-filter: invert(100%);' +
+        '-moz-filter: invert(100%);' + 
+        '-o-filter: invert(100%);' + 
+        '-ms-filter: invert(100%); }' +
+
+        'body { margin-top: -10px;' +
+        '-webkit-filter: grayscale(1);' + 
+        'background: #262626; }';
+
+    GM_addStyle(css);
 }
 
 //***************************************************************************** Cookies
@@ -298,9 +357,9 @@ if (window.location.href.indexOf("?action=showitem&itemid=") && document.getElem
             }        
         });
     }
-    var el = document.querySelectorAll(".btn")[1];
-    el.style = "font-size: 22px;width:auto;"
-    $(el).after('<form id="customorder" action="http://www.tremorgames.com?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn" style="font-size: 22px;width:auto;">Custom order</button></form>');
+    var el = document.querySelectorAll(".btn.btn-success.btn-large")[0];
+    el.style = "font-size: 22px;width:25%;"
+    $(el).after('<form id="customorder" action="http://www.tremorgames.com?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn btn-success btn-large" style="font-size: 22px;width:58%;">Custom order</button></form>');
     document.getElementById("url").value = document.getElementById("productlink").getAttribute("href") + "/";
 }
 
@@ -703,7 +762,7 @@ function activateToolTip() {
 }
 
 //***************************************************************************** Text Editor
-if (window.location.href.indexOf("viewtopic&topicid") > -1) {
+if (window.location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
 
     areas = document.getElementsByTagName('textarea');
     commentArea = areas[areas.length - 2];
@@ -751,14 +810,14 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
     document.getElementById("imgIco").addEventListener("click",function(){
         generateCode(true);
     })
-    
+
     document.getElementById("tableIco").addEventListener("click",function(){
-        
+
         if ($('#tableeditor').length > 0) {
-           alert("Cancel the current table first");
+            alert("Cancel the current table first");
             return;
         }
-        
+
         var c = prompt("Column quantity: ", "");
         var r = prompt("Row quantity: ", "");
         generateTableEditor(c, r);
@@ -790,48 +849,48 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
             commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
         commentArea.focus();
     }
-    
+
     function generateTableEditor(cols, rows){
-        
+
         var tableEditor = $('<center><table id="tableeditor"><tbody>');
         for(var r = 0; r < rows; r++)
         {
             var tr = $('<tr>');
             for (var c = 0; c < cols; c++)
                 if(r == 0)
-                   $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
+                    $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
                 else
-                   $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
+                    $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
             tr.appendTo(tableEditor);
         }
         $(commentArea).after(tableEditor);
-        
+
         $(tableEditor).after('<br> <center> <p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br> \
-                              <p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center>     \
-                             </center>');
-        
-         document.getElementById("createtable").addEventListener("click",function(){
-              CreateTable(cols, rows);
-          })
-         document.getElementById("canceltable").addEventListener("click",function(){
-              $(tableEditor).remove();
-             $(createtable).remove();
-             $(canceltable).remove();
-             
-          })
+<p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center>     \
+</center>');
+
+        document.getElementById("createtable").addEventListener("click",function(){
+            CreateTable(cols, rows);
+        })
+        document.getElementById("canceltable").addEventListener("click",function(){
+            $(tableEditor).remove();
+            $(createtable).remove();
+            $(canceltable).remove();
+
+        })
     }
-    
+
     function CreateTable(cols, rows){
-               
+
         var codeTable="";
-        
+
         var tableEditor = document.getElementsByClassName('commentTable');
         var f = 0;
         for(var i = 0; i< rows; i++){
-             codeTable += '\n';
-            
+            codeTable += '\n';
+
             if(i == 1){
-                
+
                 var headerLine = "";
                 for(var k = 0; k < cols; k++){
                     headerLine += "------------- |" 
@@ -839,13 +898,13 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1) {
                 codeTable += headerLine + '\n';
             }
 
-             f = i * (cols-1);
-           for(var j = 0; j< cols; j++){
-              codeTable += tableEditor[i+j+f].innerHTML + " | ";
-           }
+            f = i * (cols-1);
+            for(var j = 0; j< cols; j++){
+                codeTable += tableEditor[i+j+f].innerHTML + " | ";
+            }
         }
-        
-        
+
+
         var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
         if (sel_txt == "")
             commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + codeTable + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
