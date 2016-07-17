@@ -3,58 +3,51 @@
 // @namespace   http://www.tremorgames.com/?action=viewtopic&topicid=79097
 // @icon        http://www.tremorgames.com/templates/tremor/images/favicon.ico
 // @description TremorGames Enhanced will enhance your tremorgames experience!
-// @include     *://www.tremorgames.com/*?action=shop*
-// @include     *://www.tremorgames.com/*?action=forums*
-// @include     *://www.tremorgames.com/*?action=viewforum*
-// @include     *://www.tremorgames.com/*?action=viewtopic&topicid=*
-// @include     *://www.tremorgames.com/*?action=viewgiveaways*
-// @include     *://www.tremorgames.com/*?action=editprofile*
-// @include     *://www.tremorgames.com/*?action=showitem&itemid=*
-// @include     *://www.tremorgames.com/*?action=messages*
-// @include     *://www.tremorgames.com/editprofiles*
-// @include     *://www.tremorgames.com/profiles*
+// @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.3.9
+// @version     1.4.0
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
+// @grant       unsafeWindow
 // @author      brenomirandi & Royalgamer06
 // @downloadURL https://github.com/Breno-M/TGE/raw/master/TGE.user.js
 // @updateURL   https://github.com/Breno-M/TGE/raw/master/TGE.user.js
 // ==/UserScript==
 
-//***************************************************************************** Sort-script
-var script = document.createElement('script'); 
-script.src = 'http://www.kryogenix.org/code/browser/sorttable/sorttable.js';
-script.type = 'text/javascript'; 
-document.getElementsByTagName('head')[0].appendChild(script); 
-
 //***************************************************************************** Config
 
-bGiveaways=GM_getValue("bGiveaways");
-bUnsubscribe=GM_getValue("bUnsubscribe");
-bLastpage=GM_getValue("bLastpage");
-bLastpost=GM_getValue("bLastpost");
-bSelectiveItems=GM_getValue("bSelectiveItems");
-bWishlist=GM_getValue("bWishlist");
-bPM=GM_getValue("bPM");
-bInventory=GM_getValue("bInventory");
-bSteam=GM_getValue("bSteam");
-steamID=GM_getValue("steamID");
-bEditor=GM_getValue("bEditor");
-bTheme=GM_getValue("bTheme");
+var bGiveaways = GM_getValue("bGiveaways");
+var bUnsubscribe = GM_getValue("bUnsubscribe");
+var bLastpage = GM_getValue("bLastpage");
+var bLastpost = GM_getValue("bLastpost");
+var bSelectiveItems = GM_getValue("bSelectiveItems");
+var bWishlist = GM_getValue("bWishlist");
+var bPM = GM_getValue("bPM");
+var bInventory = GM_getValue("bInventory");
+var bSteam = GM_getValue("bSteam");
+var bEditor = GM_getValue("bEditor");
+var bTheme = GM_getValue("bTheme");
+var bOrder = GM_getValue("bOrder");
+var steamID = GM_getValue("steamID");
 
-if(window.location.href.indexOf("editprofile") > -1) {
+if(location.href.indexOf("editprofile") > -1) {
 
     $('div.reg_row:nth-child(18)').after('<div class="reg_row" id="tge_row0"><div class="reg_col1" style="color:#FFB300" width="80%"><b>TGE Features</b></div></div>');
+
+    $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row7"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Sync Steam</button></div></div>');
+    $('#tge_row7').after('<div class="reg_col5" style="margin-top: 10px;"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="reset" id="reset">Reset Subscriptions</button></div>');
 
     if(!bSteam)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row6"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: Off</button></div></div>');
     else if(bSteam)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row6"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleSteam" id="toggleSteam" name="5">Steam: On</button></div></div>');
 
-    $('#tge_row6').after('<div class="reg_col5" style="margin-top: 10px;"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="reset" id="reset">Reset Subscriptions</button></div>');
+    if(!bOrder)
+        $('#tge_row6').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleC" id="toggleC" name="12">Custom Order: Off</button></div>');
+    else if(bOrder)
+        $('#tge_row6').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleC" id="toggleC" name="12">Custom Order: On</button></div>');
 
     if(!bEditor)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row5"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleE" id="toggleE" name="10">Text Editor: Off</button></div></div>');
@@ -67,7 +60,7 @@ if(window.location.href.indexOf("editprofile") > -1) {
         $('#tge_row5').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleT" id="toggleT" name="11">Dark Theme: On</button></div>');
 
     if(!bWishlist)
-        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">Wishlist: Off</button></div></div>');
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">\list: Off</button></div></div>');
     else if(bWishlist)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">Wishlist: On</button></div></div>');
 
@@ -110,27 +103,69 @@ if(window.location.href.indexOf("editprofile") > -1) {
     if (url.length !== 0) { //set steamid cookie
         steamid = ($(url).text()).split('/')[4];
         GM_setValue("steamID", steamid);
+        if (GM_getValue("lastSync") === undefined) GM_setValue("lastSync", "01-01-1900");
+        $("#syncSteam").parent().parent().append('<span style="font: 9px arial; color: #a82020; display: block;">Last sync: ' + GM_getValue("lastSync") + '</span>');
     } else { //disable steam button
         $('#toggleSteam').attr('disabled','disabled').html('Disabled!');
+        $('#syncSteam').attr('disabled','disabled').html('Disabled!');
         GM_setValue("bSteam", false);
         bSteam=false;
     }
 
     activateToolTip();
+
+    $("#reset").click(reset);
+    $("#syncSteam").click(syncSteam);
+    $("#toggleG").click(toggleG);
+    $("#toggleU").click(toggleU);
+    $("#toggleL").click(toggleL);
+    $("#toggleP").click(toggleP);
+    $("#toggleS").click(toggleS);
+    $("#toggleW").click(toggleW);
+    $("#togglePM").click(togglePM);
+    $("#toggleI").click(toggleI);
+    $("#toggleE").click(toggleE);
+    $("#toggleT").click(toggleT);
+    $("#toggleC").click(toggleC);
+    $("#toggleSteam").click(toggleSteam);
 }
 
-$("#reset").click(reset);
-$("#toggleG").click(toggleG);
-$("#toggleU").click(toggleU);
-$("#toggleL").click(toggleL);
-$("#toggleP").click(toggleP);
-$("#toggleS").click(toggleS);
-$("#toggleW").click(toggleW);
-$("#togglePM").click(togglePM);
-$("#toggleI").click(toggleI);
-$("#toggleE").click(toggleE);
-$("#toggleT").click(toggleT);
-$("#toggleSteam").click(toggleSteam);
+if (bSteam) {
+    if (GM_getValue("lastSync") === undefined) GM_setValue("lastSync", "01-01-1900");
+    if (GM_getValue("lastSync") !== getToday()) {
+        ajaxSteamSync();
+    }
+}
+
+function getToday() {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = (1 + date.getMonth()).toString();
+    month = month.length > 1 ? month : '0' + month;
+    var day = date.getDate().toString();
+    day = day.length > 1 ? day : '0' + day;
+    return day + '-' + month + '-' + year;
+}
+
+function ajaxSteamSync() {
+    GM_xmlhttpRequest({
+        method: 'GET',
+        url: 'http://steamcommunity.com/profiles/' + GM_getValue("steamID") + '/games/?xml=1',
+        onload: function(data) {
+            var xml = $.parseXML(data.responseText);
+            var appids = $("appID", xml);
+            var ownedAppids = "";
+            for (var i = 0; i < appids.length; i++) {
+                ownedAppids += ownedAppids.length === 0 ? appids[i].innerHTML : "," + appids[i].innerHTML;
+            }
+            GM_setValue("ownedAppids", ownedAppids);
+            GM_setValue("lastSync", getToday());
+            if ($("#syncSteam").length > 0) {
+                $("#syncSteam").parent().html('<button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Done!</button>');
+            }
+        }
+    });
+}
 
 function toggleSteam(){
     if(!bSteam){
@@ -166,6 +201,18 @@ function toggleI(){
         GM_setValue("bInventory", false);
         bInventory=false;
         document.getElementById("toggleI").innerHTML="Inventory: Off";
+    }
+}
+function toggleC(){
+    if(!bOrder){
+        GM_setValue("bOrder", true);
+        bOrder=true;
+        document.getElementById("toggleC").innerHTML="Custom Order: On";
+    }
+    else if(bOrder){
+        GM_setValue("bOrder", false);
+        bOrder=false;
+        document.getElementById("toggleC").innerHTML="Custom Order: Off";
     }
 }
 function toggleG(){
@@ -268,106 +315,162 @@ function reset(){
     GM_setValue("blocklist", null);
     $('#reset').text('Done!');
 }
+function syncSteam() {
+    $('#syncSteam').parent().html('<center id="syncSteam"><img style="margin-top: 10px;" src="ajax-loader.gif"></center>');
+    ajaxSteamSync();
+}
 
 //***************************************************************************** Dark Theme
-
 if (bTheme) {
     var css = 'html {-webkit-filter: invert(100%);' +
-        '-moz-filter: invert(100%);' + 
-        '-o-filter: invert(100%);' + 
-        '-ms-filter: invert(100%); } ' + 
+        '-moz-filter: invert(100%);' +
+        '-o-filter: invert(100%);' +
+        '-ms-filter: invert(100%); } ' +
 
         'img {-webkit-filter: invert(100%);' +
-        '-moz-filter: invert(100%);' + 
-        '-o-filter: invert(100%);' + 
+        '-moz-filter: invert(100%);' +
+        '-o-filter: invert(100%);' +
         '-ms-filter: invert(100%); }' +
 
         'body { margin-top: -10px;' +
-        '-webkit-filter: grayscale(1);' + 
+        '-webkit-filter: grayscale(1);' +
         'background: #262626; }';
 
     GM_addStyle(css);
 }
 
 //***************************************************************************** Cookies
-
 function readCookie(name) {
     name += '=';
-    for (var ca = document.cookie.split(/;\s*/), i = ca.length - 1; i >= 0; i--)
-        if (!ca[i].indexOf(name))
-            return ca[i].replace(name, '');
+    for (var ca = document.cookie.split(/;\s*/), i = ca.length - 1; i >= 0; i--) {
+        if (!ca[i].indexOf(name)) return ca[i].replace(name, '');
+    }
 }
 
-
-//***************************************************************************** Custom Order link fix
-if (window.location.href.indexOf("?action=custom_game") > -1) {
-    $('.form-horizontal').submit(function() {
-        document.getElementById("url").value = document.getElementById("url").value + "/";
-        return true;
+//***************************************************************************** Custom Order
+if (location.href.indexOf("manual=true") === -1 && location.href.indexOf("?action=custom_game") > -1 && bOrder) {
+    $("form").remove();
+    $(".main_section_content").prepend("<input style='width:450px;float:left;background:none;' id='steamsearch' type='text'>");
+    $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float:right;margin-right:120px;margin-top:5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
+    $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div>");
+    $("#steamsearch").live("change paste keyup", function() {
+        if ($(this).val().trim() === "") {
+            $("#autocomplete").hide();
+        } else {
+            $("#autocomplete").show();
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: "http://store.steampowered.com/search/suggest?term=" + $(this).val() + "&f=games&cc=US&l=english",
+                onload: function(data) {
+                    $("#autocomplete").html("");
+                    var parser = new DOMParser();
+                    parser.parseFromString(data.responseText, "text/html").querySelectorAll('[data-ds-appid]').forEach(function(item) {
+                        var appid = item.getAttribute("data-ds-appid");
+                        var itemlink = item.getAttribute("href").split("?")[0];
+                        var itemName = item.querySelector(".match_name").innerHTML;
+                        var itemPrice = item.querySelector(".match_price").innerHTML;
+                        var itemCoins = itemPrice == "Free" || itemPrice == "Free Demo" ? 0 : Math.round(parseFloat(itemPrice.replace("$","")) * 850);
+                        var smallImage = item.querySelector(".match_img img").getAttribute("src");
+                        var right_text = "<span style='color:black'>" + itemName + "</span>";
+                        var image_text = "<div style='float:left;margin-right:10px;'><img style='width:70px;height:70px;' src='" + smallImage + "' /></div>";
+                        right_text += "<div class='tooltip_options' style='margin-top:4px;'><span style='font-size:14px;'><b>" + itemPrice + "</b> (" + itemCoins + " Tremor Coins)</span</div>";
+                        $("#autocomplete").append('<a href="#" id="result_' + appid + '"><li><div class="eac-item">' + image_text + '<div>' + right_text  + '</div><div style="clear:both;"></div></div></div></li></a>');
+                        $("#result_" + appid).click(function() {
+                            $("#steamsearch").attr("style", "width:450px;float:left;background:url('ajax-loader.gif') no-repeat right center;");
+                            $("#autocomplete").hide();
+                            $.post("http://www.tremorgames.com/?action=custom_game_submit", { url: itemlink }, function(data) {
+                                $("#steamsearch").attr("style", "width:450px;float:left;background:none;");
+                                var html = $(".main_section_content",data).html();
+                                $("#result").append("<div id='custom_order_" + appid + "'><hr><div class='subpage_header_backlink'><a href='#' onclick='$(this).parent().parent().remove();' style='font-size: 26px; font-weight: bold;'>X</a></div>" + html + "</div>");
+                            });
+                        });
+                    });
+                }
+            });
+        }
     });
 }
 
+unsafeWindow.PurchaseItem = function(itemid, appid, itemname, price) {
+    smoke.confirm("Are you sure you want to redeem " + itemname + " for "  +  price + " Tremor Coins?", function(e) {
+        if (e) {
+            baseurl = document.getElementById("base_url").value;
+            myurl= baseurl + "achievements/ajax_buyitem.php";
+            nonce = document.getElementById("nonce").innerHTML;
+            $.ajaxSetup({
+                cache: false
+            });
+            $.post(myurl, { itemid: itemid, nonce: nonce, appid: appid }, function(data) {
+                smoke.alert(data);
+            });
+        }
+    }, { ok: "Yes", cancel: "No", classname: "custom-class", reverseButtons: true });
+};
+
 //***************************************************************************** Messages
-if (window.location.href.indexOf("?action=messages") > -1 && bPM) {
-    $('tr[valign="top"]').prepend('<td width="40" align="center" valign="middle" style="border-bottom:1px solid #E4E4E3;border-right:1px solid #E4E4E3;"><input type="checkbox"></td>');
-    $('#innerbg > div.middle-container > div > div.main_section_box > div.main_section_content > table > tbody > tr:nth-child(1) > td').prepend('<button id="deleteButton" style="background-color: #0F96C8; color: white; position: relative; top: -5px;">DELETE CHECKED</button>');
+if (location.href.indexOf("?action=messages") > -1 && bPM) {
+    $("tr[valign=top]").prepend('<td width="40" align="center" valign="middle" style="border-bottom:1px solid #E4E4E3;border-right:1px solid #E4E4E3;"><input type="checkbox"></td>');
+    $("td[align=center]:first").prepend('<button id="deleteButton" style="background-color: #0F96C8; color: white; position: relative; top: -3px; height: 19px; font-size: 12px;">DELETE CHECKED</button>');
 
-    var func = "checkboxes = document.querySelectorAll('input[type=\"checkbox\"]'); for (var i = 0; i < checkboxes.length; i++) { checkboxes[i].checked = this.checked; }";
-    document.querySelector('input[type="checkbox"]').setAttribute('onClick', func);
+    $('.messagecellheaders input[type="checkbox"]').click(function() {
+        checkboxes = document.querySelectorAll("input[type=checkbox]");
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = this.checked;
+        }
+    });
 
-    document.getElementById("deleteButton").addEventListener("click", deleteSelected, false);
+    $("#deleteButton").click(deleteSelected);
 }
 
 function deleteSelected() {
     var checked = document.querySelectorAll('input[type=checkbox]:checked');
-    $('body').prepend('<img src="http://i.imgur.com/EyqtWKI.gif" style="position: fixed; width: 300px; height: auto; z-index: 1000; left: 40%; top: 40%; ">');
-
-    for (var i = 0; i < checked.length; i++) {
-        var iframe = document.createElement('iframe');
-        iframe.style.display = "none";
-        iframe.src = checked[i].parentNode.parentNode.querySelector('a[onclick="return confirmDeleteMessage()"]').getAttribute("href");
-        if (i == checked.length - 1) {
-            iframe.onload = setTimeout(function() { location.reload(); }, 1200);
+    if (checked.length > 0) {
+        if (confirm("Are you sure you wish to delete these messages?")) {
+            $("table").hide();
+            $(".main_section_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:100px; height:160px;" align="center"><img src="/images/loading.gif"></div>');
+            for (var i = 0; i < checked.length; i++) {
+                (function(i) {
+                    $(checked[i].parentNode.parentNode).remove();
+                    $.get(checked[i].parentNode.parentNode.querySelector('a[onclick="return confirmDeleteMessage()"]').getAttribute("href"), function() {
+                        if (i == checked.length - 1) {
+                            $("#loading").remove();
+                            $("table").show();
+                        }
+                    });
+                })(i);
+            }
         }
-        document.body.appendChild(iframe);
+    } else {
+        alert("Please select 1 or more private message(s) and retry");
     }
 }
 
 //***************************************************************************** Shop Item
-if (window.location.href.indexOf("?action=showitem&itemid=") && document.getElementById("productlink") !== null && document.getElementById("item_name").innerHTML.indexOf("Steam") > -1) {
-    if (bSteam) {
-        var el = '<div id="steamcheck" style="margin-top: -20px; padding-bottom: 10px;"><img src="http://i.imgur.com/xp1c7nj.gif"></div>';
-        $('.item_purchase').prepend(el);
+if (location.href.indexOf("?action=showitem&itemid=") && document.getElementById("productlink") !== null) {
+    if (document.getElementById("productlink").href.indexOf("steampowered.com/app/") > -1) {
+        if (bSteam) {
+            var el = '<div id="steamcheck" style="margin-top: -20px; padding-bottom: 10px;"><img src="http://i.imgur.com/xp1c7nj.gif"></div>';
+            $('.item_purchase').prepend(el);
 
-        var appid = document.getElementById("productlink").getAttribute("href").split("/")[4];
-        var steamid = GM_getValue("steamID");
-        var owned = false;
-
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'http://steamcommunity.com/profiles/' + steamid + '/games/?xml=1',
-            onload: function(data) {
-                var content = data.responseText;
-                owned = (content.toString().indexOf('<appID>' + appid + '</appID>') > -1);
-                if (owned) {
-                    $('#steamcheck').html('<b style="font-size: 12px; color: red;">You already own this item on steam!</b>');
-                } else if (!owned) {
-                    $('#steamcheck').html('<b style="font-size: 12px; color: green;">You do not own this item on steam!</b>');                
-                }
-            }        
-        });
+            var appid = document.getElementById("productlink").getAttribute("href").split("/")[4];
+            var ownedAppids = GM_getValue("ownedAppids");
+            if ($.inArray(appid, ownedAppids.split(",")) !== -1) {
+                $('#steamcheck').html('<b style="font-size: 12px; color: red;">You already own this item on steam!</b>');
+            } else {
+                $('#steamcheck').html('<b style="font-size: 12px; color: green;">You do not own this item on steam!</b>');
+            }
+        }
+        var el = document.querySelectorAll(".btn.btn-success.btn-large")[0];
+        el.style = "font-size: 22px;width:25%;";
+        $(el).after('<form id="customorder" action="http://www.tremorgames.com?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn btn-success btn-large" style="font-size: 22px;width:58%;">Custom order</button></form>');
+        document.getElementById("url").value = document.getElementById("productlink").getAttribute("href") + "/";
     }
-    var el = document.querySelectorAll(".btn.btn-success.btn-large")[0];
-    el.style = "font-size: 22px;width:25%;"
-    $(el).after('<form id="customorder" action="http://www.tremorgames.com?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn btn-success btn-large" style="font-size: 22px;width:58%;">Custom order</button></form>');
-    document.getElementById("url").value = document.getElementById("productlink").getAttribute("href") + "/";
 }
 
 //***************************************************************************** Export Items
-
 function expandAll() {
-    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;                
-    var uid = window.location.href.split("/")[4];
+    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
+    var uid = location.href.split("/")[4];
 
     for (var i = 1; i < max; i++) {
         var start = 10 * i;
@@ -377,10 +480,10 @@ function expandAll() {
         });
     }
 
-    $("div.ach_paging_ajax").hide();  
+    $("div.ach_paging_ajax").hide();
 }
 
-if (window.location.href.indexOf("/profiles/") > -1 && bInventory) {
+if (location.href.indexOf("/profiles/") > -1 && bInventory) {
     var ebtn = document.createElement("button");
     ebtn.setAttribute("id", "btnExportKeys");
     ebtn.setAttribute("class", "cssbutton");
@@ -397,8 +500,8 @@ if (window.location.href.indexOf("/profiles/") > -1 && bInventory) {
 
     setInterval(function() {
         if (document.getElementById("UserItems") !== null && document.getElementById("btnExportKeys") === null && document.getElementById("btnExpandAll") === null) {
-            var myuid = readCookie("uid");                
-            var uid = window.location.href.split("/")[4];
+            var myuid = readCookie("uid");
+            var uid = location.href.split("/")[4];
 
             if (myuid == uid) {
                 $("#uprofile_content").prepend(lbtn);
@@ -409,50 +512,77 @@ if (window.location.href.indexOf("/profiles/") > -1 && bInventory) {
 }
 
 //***************************************************************************** Wishlist
-if (window.location.href.indexOf("/profiles/") > -1 && bWishlist) {
-
-    var btn = document.createElement("button");
-    btn.setAttribute("id", "btnRemoveOwned");
-    btn.setAttribute("class", "cssbutton");
-    btn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
-    btn.addEventListener("click", RemoveOwned, false);
-    btn.innerHTML = "Remove owned items";
-
-    setInterval(function() {
-        if (document.getElementById("UserWishlistItems") !== null && document.getElementById("btnRemoveOwned") === null) {
-            var myuid = readCookie("uid");                
-            var uid = window.location.href.split("/")[4];
-
-            if (myuid == uid) {
-                var attach = document.getElementById("uprofile_content");
-                attach.insertBefore(btn, attach.firstChild);
-            }
-
-            if (document.getElementsByClassName("tbl_last sortable")[0] === undefined) {
-                var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
-
-                for (var i = 1; i < max; i++) {
-                    var start = 10 * i;
-                    $.get( "http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + start, function(data) {
-                        var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
-                        $( "#UserWishlistItems > table.tbl_last > tbody").append(rows);
-                    });
-                }
-
-                $("div.ach_paging_ajax").hide();
-                $("table.head").hide();
-                $("table.tbl_last > tbody").prepend("<tr><td class='wdth1' style='background-color: #3d94f6; text-align: center;'></td><td class='seb'></td><td class='wdth2' style='background-color: #3d94f6; text-align: center;'></td><td class='seb'></td><td class='wdth3' style='background-color: #3d94f6; text-align: center;'></td><td class='seb'></td><td class='use_item_col' style='background-color: #3d94f6; text-align: center;'></td></tr>");
-                $("table.tbl_last").addClass("sortable");
-
-                makeSortable();
+if (location.href.indexOf("/profiles/") > -1 && bWishlist) {
+    $("#prf_tab9").html("<a href='javascript:void(0)'>Wishlist</a>");
+    $("#prf_tab9 a").click(function() {
+        var myuid = readCookie("uid");
+        var uid = location.href.split("/")[4];
+        for (i = 1; i <= 9; i++) {
+            if (i == 9) {
+                document.getElementById('prf_tab' + i).className = "actv";
+            } else {
+                document.getElementById('prf_tab' + i).className = "";
             }
         }
-    }, 100);
+        var base_url = $("#base_url").val();
+        document.getElementById('uprofile_content').innerHTML = '<div style="clear:both; padding-top:160px; height:160px;" align="center"><img src="/images/loading.gif"></div>';
+        xmlHttp = GetXmlHttpObject();
+        if (xmlHttp === null) {
+            alert("Browser does not support HTTP Request");
+            return;
+        }
+        var url = base_url + "ajaxfunctions.php" + "?page=load_profiletabs&pid=9&userid=" + uid;
+        xmlHttp.onreadystatechange = function() {
+            stateChanged_PFtab();
+            if (document.getElementById("btnRemoveOwned") === null && myuid == uid) {
+                if (myuid == uid) {
+                    $("#uprofile_content").prepend("<button id='btnRemoveOwned' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove redeemed items</button>");
+                    $("#btnRemoveOwned").click(RemoveOwned);
+                    if (bSteam) {
+                        $("#uprofile_content").prepend("<button id='btnRemovedSteam' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove owned items on Steam</button>");
+                        $("#btnRemovedSteam").click(removeSteam);
+                    }
+                }
+
+                if (document.getElementsByClassName("tbl_last sortable")[0] === undefined) {
+                    $("#uprofile_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:160px; height:160px;" align="center"><img src="/images/loading.gif"></div>');
+                    $("#uprofile_content").css("visibility", "hidden");
+                    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
+                    var rows = $(".tbl_last > tbody > tr");
+                    rows[rows.length-1].childNodes.forEach(function(e) { e.removeAttribute("style"); });
+
+                    for (var i = 1; i < max; i++) {
+                        (function(i, max) {
+                            $.get("http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + (10 * i), function(data) {
+                                var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
+                                rows[rows.length-1].childNodes.forEach(function(e) { e.removeAttribute("style"); });
+                                $( "#UserWishlistItems > table.tbl_last > tbody").append(rows);
+                                if (i == max-1) {
+                                    setTimeout(function() {
+                                        $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js", function() {
+                                            $("#uprofile_content").css("visibility", "visible");
+                                            $("#loading").remove();
+                                        });
+                                    }, 500);
+                                }
+                            });
+                        })(i, max);
+                    }
+
+                    $("div.ach_paging_ajax").remove();
+                    $("table.head").remove();
+                    $("table.tbl_last > tbody").prepend("<tr><td class='wdth1' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='wdth2' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='wdth3' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='use_item_col' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td></tr>");
+                    $("table.tbl_last").addClass("sortable");
+                }
+            }
+        };
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
+    });
 }
 
 function RemoveOwned() {
     var status_items = $("#UserWishlistItems div+ div");
-
     if (status_items.length > 0) {
         for (var i = 0; i < status_items.length; i++) {
             if (status_items[i].innerHTML == "You already have this item") {
@@ -464,41 +594,54 @@ function RemoveOwned() {
     }
 }
 
-//***************************************************************************** Giveaways
-
-var isChrome = !!window.chrome;
-
-if(window.location.href.indexOf("viewgiveaways") > -1 && bGiveaways) {
-
-    var buttons = document.getElementsByClassName("cssbutton");
-    if(buttons.length>0){
-        var sum = 0;
-        var items = document.querySelectorAll(".box_round+ div b");
-        for (var i = 0; i < items.length; i++) {
-            sum += parseInt(items[i].innerHTML.match(/\d+/)[0]);
+function removeSteam() {
+    $("#btnRemovedSteam").text("Checking...");
+    var items = $("#UserWishlistItems tr");
+    if (items.length > 0) {
+        for (var i = 2; i < items.length; i++) {
+            (function(i) {
+                $.get(items[i].querySelector("td.wdth2 > span > a").getAttribute("href"), function(data) {
+                    if ($("#productlink", data).length > 0) {
+                        if ($("#productlink", data).attr("href").indexOf("steampowered.com/app/") > -1) {
+                            var appid = $("#productlink", data).attr("href").split("/")[4];
+                            var ownedAppids = GM_getValue("ownedAppids");
+                            if ($.inArray(appid, ownedAppids.split(",")) !== -1) {
+                                items[i].querySelector("td.use_item_col > span > a").click();
+                            }
+                        }
+                    }
+                    if (i == items.length - 1) {
+                        $("#btnRemovedSteam").text("Done!");
+                    }
+                });
+            })(i);
         }
-        $('form[name=myform]').after('<br><button class="cssbutton" style="width:240px;" value="giveaway" id="giveaway">Enter all ' + buttons.length + ' giveaways<br>(costs ' + sum + ' tremor coins)</button>');
-        $("#giveaway").click (giveaway);
     }
 }
 
-function giveaway(){
-    $('form[name=myform]').after('<div id="info">Gathering giveaways...</div>');
-    setTimeout(giveawayready, (buttons.length)*500);
-}
-
-function giveawayready(){
-    $('#info').remove();
-    alert("Done!");
-    for (var i = 0; i < buttons.length; i++) {
-        buttons[i].setAttribute("target", "_blank");
-        buttons[i].click();
-        location.reload();
+//***************************************************************************** Giveaways
+if(location.href.indexOf("viewgiveaways") > -1 && bGiveaways) {
+    var buttons = document.getElementsByClassName("cssbutton");
+    if (buttons.length > 0){
+        var sum = 0;
+        var items = document.querySelectorAll(".box_round+ div b");
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].parentNode.querySelector(".cssbutton") !== null) sum += parseInt(items[i].innerHTML.match(/\d+/)[0]);
+        }
+        $('form[name=myform]').after('<br><button class="cssbutton" style="width:240px;" value="giveaway" id="giveaway">Enter all ' + buttons.length + ' giveaways<br>(costs ' + sum + ' tremor coins)</button>');
+        $("#giveaway").click(function() {
+            for (var i = 0; i < buttons.length; i++) {
+                (function(i) {
+                    $.get(buttons[i].href, function() {
+                        if (i == buttons.length - 1) setTimeout(function() { location.reload(); }, 500);
+                    });
+                })(i);
+            }
+        });
     }
 }
 
 //***************************************************************************** Unsubscribe
-
 var listval = GM_getValue("blocklist");
 var blocklist = [];
 if(listval)
@@ -508,63 +651,63 @@ if(listval)
 unsafeWindow.blocklist = blocklist;
 
 
-function StoreDels0(){
+function StoreDels0() {
     blocklist = blocklist.concat(hereHref[0].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[0].text+"')").hide();
 }
-function StoreDels2(){
+function StoreDels2() {
     blocklist = blocklist.concat(hereHref[2].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[2].text+"')").hide();
 }
-function StoreDels4(){
+function StoreDels4() {
     blocklist = blocklist.concat(hereHref[4].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[4].text+"')").hide();
 }
-function StoreDels6(){
+function StoreDels6() {
     blocklist = blocklist.concat(hereHref[6].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[6].text+"')").hide();
 }
-function StoreDels8(){
+function StoreDels8() {
     blocklist = blocklist.concat(hereHref[8].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[8].text+"')").hide();
 }
-function StoreDels10(){
+function StoreDels10() {
     blocklist = blocklist.concat(hereHref[10].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[10].text+"')").hide();
 }
-function StoreDels12(){
+function StoreDels12() {
     blocklist = blocklist.concat(hereHref[12].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[12].text+"')").hide();
 }
-function StoreDels14(){
+function StoreDels14() {
     blocklist = blocklist.concat(hereHref[14].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[14].text+"')").hide();
 }
-function StoreDels16(){
+function StoreDels16() {
     blocklist = blocklist.concat(hereHref[16].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[16].text+"')").hide();
 }
-function StoreDels18(){
+function StoreDels18() {
     blocklist = blocklist.concat(hereHref[18].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[18].text+"')").hide();
 }
-function StoreDels20(){
+function StoreDels20() {
     blocklist = blocklist.concat(hereHref[20].text);
     GM_setValue("blocklist", JSON.stringify(blocklist));
     $("tr:contains('"+hereHref[20].text+"')").hide();
 }
 
-if(window.location.href=="http://www.tremorgames.com/?action=forums" && bUnsubscribe){
+if(location.href=="http://www.tremorgames.com/?action=forums" && bUnsubscribe){
     var hereTd = document.getElementsByTagName("table");
     var hereHref = hereTd[5].getElementsByTagName('a');
 
@@ -575,7 +718,7 @@ if(window.location.href=="http://www.tremorgames.com/?action=forums" && bUnsubsc
     }
 
     for (var k=0; k < hereHref.length - 1; k++){
-        if(k%2==0)
+        if(k % 2 === 0)
             $(hereHref[k]).before('<button class="myButton" value="X" id="tomate'+k+'">X</button>&nbsp &nbsp');
     }
 
@@ -595,7 +738,7 @@ if(window.location.href=="http://www.tremorgames.com/?action=forums" && bUnsubsc
 
 
 //***************************************************************************** Last page
-if(((window.location.href.indexOf("action=forums") > -1)||(window.location.href.indexOf("action=viewforum") > -1)) && bLastpage) {
+if(((location.href.indexOf("action=forums") > -1)||(location.href.indexOf("action=viewforum") > -1)) && bLastpage) {
     var links = document.evaluate("//a[contains(@href, 'm/profiles/')]", document, null,
                                   XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
     var pg = Math.pow(8, 4);
@@ -611,22 +754,23 @@ if(((window.location.href.indexOf("action=forums") > -1)||(window.location.href.
 
     for (var i=2 ; i < links.snapshotLength; i++)
     {
-        var thisLink = links.snapshotItem(i);    
-        var thisLinkT = linksT.snapshotItem((i-2) + alertCount);  
+        var thisLink = links.snapshotItem(i);
+        var thisLinkT = linksT.snapshotItem((i-2) + alertCount);
         thisLink.href = thisLinkT.href+'&page='+pg;
-        thisLink.text += ' »';  
+        thisLink.text += ' »';
     }
 }
 
 $(document).ready(function () {
-    if(window.location.href.indexOf("page=4096") > -1 && bLastpost) {
+    if(location.href.indexOf("page=4096") > -1 && bLastpost) {
         var ids = $('.forumpost');
         location.hash = ids[ids.length-1].id;
     }
 });
 
-
 //***************************************************************************** Selective items
+var isChrome = !!window.chrome;
+
 if(bSelectiveItems){
     test=GM_getValue("test");
 
@@ -638,17 +782,15 @@ if(bSelectiveItems){
     $("#toggle").click (toggle);
 
     var coins;
-
     var points = document.evaluate("//a[contains(@href, 'http://www.tremorgames.com/?action=points')]", document, null,
                                    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
 
-    for (var i=1; i < points.snapshotLength; i++)
-    {
-        var thisPoints = points.snapshotItem(i);    
+    for (var i=1; i < points.snapshotLength; i++) {
+        var thisPoints = points.snapshotItem(i);
         coins=thisPoints.text;
     }
 
-    if(isChrome){
+    if (isChrome) {
         for (var h=1; h <= coins.length; h++){
             coins= coins.substring(0,h-1) + coins.substring(h, coins.length);
         }
@@ -697,25 +839,28 @@ function toggle(){
 
 function activateToolTip() {
     image = [
-        " http://i.imgur.com/WVSEeoW.png", //0 - Last page
-        " http://i.imgur.com/OZvZqQ6.png", //1 - Last post
-        " http://i.imgur.com/P7l8b5g.png", //2 - Unsubscribe
-        " http://i.imgur.com/TGtUlhB.png", //3 - Hide unaffordable items
-        " http://i.imgur.com/CcNhav3.png", //4 - Removed owned wishlist items
-        " http://i.imgur.com/DPl7rrv.png", //5 - Owned on steam
-        " http://i.imgur.com/I31gnjg.png", //6 - PM checkboxes
-        " http://i.imgur.com/8e5AOHh.png", //7 - Export inventory
-        " http://i.imgur.com/8e5AOHh.png", //8 - Expand inventory
-        " http://i.imgur.com/2f2QhVJ.png"  //9 - Giveaways
+        "https://i.imgur.com/WVSEeoW.png", //0 - Last page
+        "https://i.imgur.com/OZvZqQ6.png", //1 - Last post
+        "https://i.imgur.com/P7l8b5g.png", //2 - Unsubscribe
+        "https://i.imgur.com/TGtUlhB.png", //3 - Hide unaffordable items
+        "https://i.imgur.com/CcNhav3.png", //4 - Removed owned wishlist items
+        "https://i.imgur.com/DPl7rrv.png", //5 - Owned on steam
+        "https://i.imgur.com/I31gnjg.png", //6 - PM checkboxes
+        "https://i.imgur.com/8e5AOHh.png", //7 - Export inventory
+        "https://i.imgur.com/8e5AOHh.png", //8 - Expand inventory
+        "https://i.imgur.com/2f2QhVJ.png", //9 - Giveaways
+        "https://i.imgur.com/Kr7M8IS.png", //10- Text Editor
+        "https://i.imgur.com/jV7kDqm.png", //11- Dark Theme
+        "https://i.imgur.com/K9VweuF.png"  //12- Custom Order
     ];
 
     $('button[rel=tooltip]').mouseover(function(e) {
 
         //Grab the title attribute's value and assign it to a variable
-        var img_i = $(this).attr('name');  
+        var img_i = $(this).attr('name');
 
         //Append the tooltip template and its value
-        $(this).append('<div id="tooltip"><img src="' + image[img_i] + '"></div>');    
+        $(this).append('<div id="tooltip"><img src="' + image[img_i] + '"></div>');
 
         //Show the tooltip with faceIn effect
         //$('#tooltip').fadeIn('500');
@@ -743,7 +888,7 @@ function activateToolTip() {
             x_dist = 160;
 
         else if (win_width > 1200)
-            x_dist = 130;  
+            x_dist = 130;
         else if (win_width > 1000)
             x_dist = -20;
         else
@@ -758,58 +903,49 @@ function activateToolTip() {
     }).mouseout(function() {
         //Remove the appended tooltip template
         $(this).children('div#tooltip').remove();
-    });    
+    });
 }
 
 //***************************************************************************** Text Editor
-if (window.location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
+if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
 
     areas = document.getElementsByTagName('textarea');
     commentArea = areas[areas.length - 2];
     if(isChrome)
         commentArea = document.getElementById("newcomment");
 
-    $(commentArea).before('<center> \
-<img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img>             \
-<img src="http://i.imgur.com/OMUDRHi.png" id="itaIco" ></img>              \
-<img src="http://i.imgur.com/en3TT2f.png" id="h1Ico" ></img>               \
-<img src="http://i.imgur.com/klDXQh9.png" id="h2Ico" ></img>               \
-<img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img>               \
-<img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img>             \
-<img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img>              \
-<img src="http://i.imgur.com/APywE0o.png" id="tableIco" ></img>            \
-</center>');
+    $(commentArea).before('<center><img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img><img src="http://i.imgur.com/OMUDRHi.png" id="itaIco" ></img><img src="http://i.imgur.com/en3TT2f.png" id="h1Ico" ></img><img src="http://i.imgur.com/klDXQh9.png" id="h2Ico" ></img><img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img><img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img><img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img><img src="http://i.imgur.com/APywE0o.png" id="tableIco" ></img></center>');
 
     document.getElementById("boldIco").addEventListener("click",function(){
         addTag("**", "**");
-    })
+    });
 
     document.getElementById("itaIco").addEventListener("click",function(){
         addTag("*", "*");
-    })
+    });
 
     document.getElementById("h1Ico").addEventListener("click",function(){
         addTag("#", "");
-    })
+    });
 
     document.getElementById("h2Ico").addEventListener("click",function(){
         addTag("####", "");
-    })
+    });
 
     document.getElementById("hrIco").addEventListener("click",function(){
-        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
-        if (sel_txt == "")
+        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
+        if (sel_txt === "")
             commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + "___" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
         commentArea.focus();
-    })
+    });
 
     document.getElementById("linkIco").addEventListener("click",function(){
         generateCode(false);
-    })
+    });
 
     document.getElementById("imgIco").addEventListener("click",function(){
         generateCode(true);
-    })
+    });
 
     document.getElementById("tableIco").addEventListener("click",function(){
 
@@ -821,94 +957,82 @@ if (window.location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
         var c = prompt("Column quantity: ", "");
         var r = prompt("Row quantity: ", "");
         generateTableEditor(c, r);
-    })
+    });
+}
+function addTag(prefix, suffix) {
+    var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
+    if (sel_txt !== ""){
+        var replace = prefix + sel_txt + suffix;
+        if(/\s+$/.test(sel_txt)) replace = prefix + sel_txt.slice(0, -1) + suffix + " ";
+        commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + replace + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+    }
+    commentArea.focus();
+}
 
-    function addTag(prefix, suffix){
-        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
-        if (sel_txt != ""){
-            if(/\s+$/.test(sel_txt))
-                var replace = prefix + sel_txt.slice(0, -1) + suffix + " ";
+function generateCode(isImage) {
+    var url = prompt("Enter the URL: ", "");
+    if(!url) return;
+    var txt = prompt("Enter a text: ", "");
+    var b = "[";
+    if(isImage)
+        b = "![";
+    var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
+    if (sel_txt === "")
+        commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+    commentArea.focus();
+}
+
+function generateTableEditor(cols, rows) {
+    var tableEditor = $('<center><table id="tableeditor"><tbody>');
+    for(var r = 0; r < rows; r++)
+    {
+        var tr = $('<tr>');
+        for (var c = 0; c < cols; c++)
+            if(r === 0)
+                $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
             else
-                var replace = prefix + sel_txt + suffix;
-            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + replace + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
-        }
-        commentArea.focus();
+                $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
+        tr.appendTo(tableEditor);
     }
+    $(commentArea).after(tableEditor);
+    $(tableEditor).after('<br> <center> <p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br><p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center></center>');
 
-    function generateCode(isImage){
-        var url = prompt("Enter the URL: ", "");
-        if(url)
-            var txt = prompt("Enter a text: ", "");
-        else
-            return;
-        var b = "[";
-        if(isImage)
-            b = "![";
-        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
-        if (sel_txt == "")
-            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
-        commentArea.focus();
-    }
+    document.getElementById("createtable").addEventListener("click",function(){
+        CreateTable(cols, rows);
+    });
+    document.getElementById("canceltable").addEventListener("click",function(){
+        $(tableEditor).remove();
+        $(createtable).remove();
+        $(canceltable).remove();
 
-    function generateTableEditor(cols, rows){
+    });
+}
 
-        var tableEditor = $('<center><table id="tableeditor"><tbody>');
-        for(var r = 0; r < rows; r++)
-        {
-            var tr = $('<tr>');
-            for (var c = 0; c < cols; c++)
-                if(r == 0)
-                    $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
-                else
-                    $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
-            tr.appendTo(tableEditor);
-        }
-        $(commentArea).after(tableEditor);
+function CreateTable(cols, rows) {
+    var codeTable="";
 
-        $(tableEditor).after('<br> <center> <p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br> \
-<p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center>     \
-</center>');
+    var tableEditor = document.getElementsByClassName('commentTable');
+    var f = 0;
+    for(var i = 0; i< rows; i++){
+        codeTable += '\n';
 
-        document.getElementById("createtable").addEventListener("click",function(){
-            CreateTable(cols, rows);
-        })
-        document.getElementById("canceltable").addEventListener("click",function(){
-            $(tableEditor).remove();
-            $(createtable).remove();
-            $(canceltable).remove();
+        if(i == 1){
 
-        })
-    }
-
-    function CreateTable(cols, rows){
-
-        var codeTable="";
-
-        var tableEditor = document.getElementsByClassName('commentTable');
-        var f = 0;
-        for(var i = 0; i< rows; i++){
-            codeTable += '\n';
-
-            if(i == 1){
-
-                var headerLine = "";
-                for(var k = 0; k < cols; k++){
-                    headerLine += "------------- |" 
-                }
-                codeTable += headerLine + '\n';
+            var headerLine = "";
+            for(var k = 0; k < cols; k++){
+                headerLine += "------------- |";
             }
-
-            f = i * (cols-1);
-            for(var j = 0; j< cols; j++){
-                codeTable += tableEditor[i+j+f].innerHTML + " | ";
-            }
+            codeTable += headerLine + '\n';
         }
 
-
-        var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);  
-        if (sel_txt == "")
-            commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + codeTable + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
-        commentArea.focus();
+        f = i * (cols-1);
+        for(var j = 0; j< cols; j++){
+            codeTable += tableEditor[i+j+f].innerHTML + " | ";
+        }
     }
 
+
+    var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
+    if (sel_txt === "") commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + codeTable + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+    commentArea.focus();
 }
