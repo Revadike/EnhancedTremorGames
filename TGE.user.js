@@ -5,7 +5,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.1
+// @version     1.4.2
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -58,7 +58,7 @@ if(location.href.indexOf("editprofile") > -1) {
         $('#tge_row5').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleT" id="toggleT" name="11">Dark Theme: On</button></div>');
 
     if(!bWishlist)
-        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">\list: Off</button></div></div>');
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">Wishlist: Off</button></div></div>');
     else if(bWishlist)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row4"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleW" id="toggleW" name="4">Wishlist: On</button></div></div>');
 
@@ -88,7 +88,7 @@ if(location.href.indexOf("editprofile") > -1) {
         $('#tge_row2').after('<div class="reg_col5" style="margin-top: 10px;"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleU" id="toggleU" name="2">Unsubscribe: On</button></div>');
 
     if(!bSelectiveItems)
-        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row1"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleS" id="toggleS" name="3">Item Filter: Off</button></div></div>');
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row1"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleS" id="toggleS" name="3">Item Filters: Off</button></div></div>');
     else if(bSelectiveItems)
         $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row1"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleS" id="toggleS" name="3">Item Filters: On</button></div></div>');
 
@@ -133,6 +133,75 @@ if (bSteam) {
     if (GM_getValue("lastSync") !== getToday()) {
         ajaxSteamSync();
     }
+}
+
+function activateToolTip() {
+    image = [
+        "https://i.imgur.com/WVSEeoW.png", //0 - Last page
+        "https://i.imgur.com/OZvZqQ6.png", //1 - Last post
+        "https://i.imgur.com/P7l8b5g.png", //2 - Unsubscribe
+        "https://i.imgur.com/TGtUlhB.png", //3 - Hide unaffordable items
+        "https://i.imgur.com/CcNhav3.png", //4 - Removed owned wishlist items
+        "https://i.imgur.com/DPl7rrv.png", //5 - Owned on steam
+        "https://i.imgur.com/I31gnjg.png", //6 - PM checkboxes
+        "https://i.imgur.com/8e5AOHh.png", //7 - Export inventory
+        "https://i.imgur.com/8e5AOHh.png", //8 - Expand inventory
+        "https://i.imgur.com/2f2QhVJ.png", //9 - Giveaways
+        "https://i.imgur.com/Kr7M8IS.png", //10- Text Editor
+        "https://i.imgur.com/jV7kDqm.png", //11- Dark Theme
+        "https://i.imgur.com/K9VweuF.png"  //12- Custom Order
+    ];
+
+    $('button[rel=tooltip]').mouseover(function(e) {
+
+        //Grab the title attribute's value and assign it to a variable
+        var img_i = $(this).attr('name');
+
+        //Append the tooltip template and its value
+        $(this).append('<div id="tooltip"><img src="' + image[img_i] + '"></div>');
+
+        //Show the tooltip with faceIn effect
+        //$('#tooltip').fadeIn('500');
+        //$('#tooltip').fadeTo('10',0.9);
+
+    }).mousemove(function(e) {
+
+        var win_width;
+        // Window dimensions:
+        if (window.innerWidth) {
+            win_width=window.innerWidth;
+        }
+        else if (document.documentElement && document.documentElement.clientWidth) {
+            win_width=document.documentElement.clientWidth;
+        }
+        else if (document.body) {
+            win_width=document.body.clientWidth;
+        }
+
+        if(win_width > 1900)
+            x_dist = 435;
+        else if (win_width > 1400)
+            x_dist = 290;
+        else if (win_width > 1350)
+            x_dist = 160;
+
+        else if (win_width > 1200)
+            x_dist = 130;
+        else if (win_width > 1000)
+            x_dist = -20;
+        else
+            x_dist = -40;
+
+        //Keep changing the X and Y axis for the tooltip, thus, the tooltip move along with the mouse
+        //$('#tooltip').css('z-index', 2147483647 );
+        //$('#tooltip').css('position', 'fixed' );
+        $('#tooltip').css('top', e.pageY + 10 );
+        $('#tooltip').css('left', e.pageX - x_dist );
+
+    }).mouseout(function() {
+        //Remove the appended tooltip template
+        $(this).children('div#tooltip').remove();
+    });
 }
 
 function getToday() {
@@ -265,12 +334,12 @@ function toggleS(){
     if(!bSelectiveItems){
         GM_setValue("bSelectiveItems", true);
         bSelectiveItems=true;
-        document.getElementById("toggleS").innerHTML="Item Filter: On";
+        document.getElementById("toggleS").innerHTML="Item Filters: On";
     }
     else if(bSelectiveItems){
         GM_setValue("bSelectiveItems", false);
         bSelectiveItems=false;
-        document.getElementById("toggleS").innerHTML="Item Filter: Off";
+        document.getElementById("toggleS").innerHTML="Item Filters: Off";
     }
 }
 function toggleW(){
@@ -317,6 +386,7 @@ function syncSteam() {
     $('#syncSteam').parent().html('<center id="syncSteam"><img style="margin-top: 10px;" src="ajax-loader.gif"></center>');
     ajaxSteamSync();
 }
+var isChrome = !!window.chrome;
 
 //***************************************************************************** Dark Theme
 if (bTheme) {
@@ -462,6 +532,91 @@ if (location.href.indexOf("?action=showitem&itemid=") && document.getElementById
         el.style = "font-size: 22px;width:25%;";
         $(el).after('<form id="customorder" action="http://www.tremorgames.com?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn btn-success btn-large" style="font-size: 22px;width:58%;">Custom order</button></form>');
         document.getElementById("url").value = document.getElementById("productlink").getAttribute("href") + "/";
+    }
+}
+
+//***************************************************************************** Shop
+if (location.href.indexOf("?action=shop") > -1 && bSelectiveItems) {
+    var filters = '<br> Hide unaffordable items : <input type="checkbox" id="unaffordable">';
+    if (bSteam) {
+        filters += '<br> Hide items owned on steam : <input type="checkbox" id="steamowned"><img src="ajax-loader.gif" id="ajaxloader" style="display: none;">';
+    }
+    $("#frm_shop_srch > div > div").removeAttr("style").css("text-align", "right").css("margin-right", "16px").css("margin-top", "-12px").append(filters);
+
+    $("#unaffordable").live("change", function() {
+        if (this.checked) {
+            GM_setValue("u_checked", "true");
+            $.get("/achievements/ajax_getusercoins.php", function(coinsresult) {
+                Array.from($("div.main_section_box > div > div.shop_item_box_type:nth-child(4)")).forEach(function(item) {
+                    var price = parseInt(item.innerHTML.replace(" Tremor Coins", ""));
+                    var coins = parseInt(coinsresult);
+                    //var coins = 10;
+                    if (price > coins) {
+                        $(item.parentNode).hide();
+                        $(item.parentNode).addClass("unaffordable");
+                    }
+                });
+            });
+        } else if (!this.checked) {
+            GM_setValue("u_checked", "false");
+            Array.from($(".shop_item_box.unaffordable:hidden")).forEach(function(item) {
+                $(item).show();
+            });
+        }
+    });
+
+    $("#steamowned").live("change", function() {
+        var input = this;
+        if (input.checked) {
+            GM_setValue("s_checked", "true");
+            $(this).hide();
+            $("#ajaxloader").show();
+            if ($(".shop_item_box.steamowned").length > 0) {
+                Array.from($(".shop_item_box.steamowned")).forEach(function(item) {
+                    $(item).hide();
+                });
+                $(input).show();
+                $("#ajaxloader").hide();
+            } else {
+                var items = Array.from($("div.main_section_box a.popover_tooltip"));
+                items.forEach(function(item, i) {
+                    (function(i) {
+                        $.get(item.href, function(data) {
+                            if ($("#productlink", data).length > 0) {
+                                if ($("#productlink", data).attr("href").indexOf("steampowered.com/app/") > -1) {
+                                    var appid = $("#productlink", data).attr("href").split("/")[4];
+                                    var ownedAppids = GM_getValue("ownedAppids");
+                                    if ($.inArray(appid, ownedAppids.split(",")) > -1) {
+                                        $(item.parentNode).hide();
+                                        $(item.parentNode).addClass("steamowned");
+                                    }
+                                }
+                            }
+                            if (i == items.length - 1) {
+                                $(input).show();
+                                $("#ajaxloader").hide();
+                            }
+                        });
+                    })(i);
+                });
+            }
+        } else if (!input.checked) {
+            GM_setValue("s_checked", "false");
+            $(input).show();
+            $("#ajaxloader").hide();
+            Array.from($(".shop_item_box.steamowned:hidden")).forEach(function(item) {
+                $(item).show();
+            });
+        }
+    });
+
+    var u_checked = GM_getValue("u_checked");
+    var s_checked = GM_getValue("s_checked");
+    if (u_checked == "true") {
+        $("#unaffordable").click();
+    }
+    if (s_checked == "true") {
+        $("#steamowned").click();
     }
 }
 
@@ -766,143 +921,6 @@ $(document).ready(function () {
     }
 });
 
-//***************************************************************************** Selective items
-var isChrome = !!window.chrome;
-
-if(bSelectiveItems){
-    test=GM_getValue("test");
-
-    if(!test)
-        $("div.shop_catbg_middle_right").append('| &nbsp <button class="toggle" value="toggle" id="toggle">$ Off</button>');
-    else if(test)
-        $("div.shop_catbg_middle_right").append('| &nbsp <button class="toggle" value="toggle" id="toggle">$ On</button>');
-
-    $("#toggle").click (toggle);
-
-    var coins;
-    var points = document.evaluate("//a[contains(@href, 'http://www.tremorgames.com/?action=points')]", document, null,
-                                   XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-
-    for (var i=1; i < points.snapshotLength; i++) {
-        var thisPoints = points.snapshotItem(i);
-        coins=thisPoints.text;
-    }
-
-    if (isChrome) {
-        for (var h=1; h <= coins.length; h++){
-            coins= coins.substring(0,h-1) + coins.substring(h, coins.length);
-        }
-    }
-
-    var solidPrice=[];
-    var allPrices = $( ".shop_item_box_type:contains('Coins')" );
-
-    for (var k=0; k < allPrices.length; k++)
-    {
-        solidPrice[k]=allPrices[k].innerHTML;
-        solidPrice[k]= solidPrice[k].substr(0, solidPrice[k].length - 26);
-    }
-    var points=parseInt(coins);
-
-    HideShow();
-
-}
-
-function HideShow(){
-    for (var j=0; j < solidPrice.length; j++)
-    {
-        if(points<=solidPrice[j]){
-            if(test)
-                $("div.shop_item_box:contains('" + solidPrice[j] + " Tremor')").hide ();
-            else if(!test)
-                $("div.shop_item_box:contains('" + solidPrice[j] + " Tremor')").show ();
-        }
-    }
-}
-
-function toggle(){
-    if(!test){
-        GM_setValue("test", true);
-        test=true;
-        document.getElementById("toggle").innerHTML="$ On";
-        HideShow();
-    }
-    else if(test){
-        GM_setValue("test", false);
-        test=false;
-        document.getElementById("toggle").innerHTML="$ Off";
-        HideShow();
-    }
-}
-
-function activateToolTip() {
-    image = [
-        "https://i.imgur.com/WVSEeoW.png", //0 - Last page
-        "https://i.imgur.com/OZvZqQ6.png", //1 - Last post
-        "https://i.imgur.com/P7l8b5g.png", //2 - Unsubscribe
-        "https://i.imgur.com/TGtUlhB.png", //3 - Hide unaffordable items
-        "https://i.imgur.com/CcNhav3.png", //4 - Removed owned wishlist items
-        "https://i.imgur.com/DPl7rrv.png", //5 - Owned on steam
-        "https://i.imgur.com/I31gnjg.png", //6 - PM checkboxes
-        "https://i.imgur.com/8e5AOHh.png", //7 - Export inventory
-        "https://i.imgur.com/8e5AOHh.png", //8 - Expand inventory
-        "https://i.imgur.com/2f2QhVJ.png", //9 - Giveaways
-        "https://i.imgur.com/Kr7M8IS.png", //10- Text Editor
-        "https://i.imgur.com/jV7kDqm.png", //11- Dark Theme
-        "https://i.imgur.com/K9VweuF.png"  //12- Custom Order
-    ];
-
-    $('button[rel=tooltip]').mouseover(function(e) {
-
-        //Grab the title attribute's value and assign it to a variable
-        var img_i = $(this).attr('name');
-
-        //Append the tooltip template and its value
-        $(this).append('<div id="tooltip"><img src="' + image[img_i] + '"></div>');
-
-        //Show the tooltip with faceIn effect
-        //$('#tooltip').fadeIn('500');
-        //$('#tooltip').fadeTo('10',0.9);
-
-    }).mousemove(function(e) {
-
-        var win_width;
-        // Window dimensions:
-        if (window.innerWidth) {
-            win_width=window.innerWidth;
-        }
-        else if (document.documentElement && document.documentElement.clientWidth) {
-            win_width=document.documentElement.clientWidth;
-        }
-        else if (document.body) {
-            win_width=document.body.clientWidth;
-        }
-
-        if(win_width > 1900)
-            x_dist = 435;
-        else if (win_width > 1400)
-            x_dist = 290;
-        else if (win_width > 1350)
-            x_dist = 160;
-
-        else if (win_width > 1200)
-            x_dist = 130;
-        else if (win_width > 1000)
-            x_dist = -20;
-        else
-            x_dist = -40;
-
-        //Keep changing the X and Y axis for the tooltip, thus, the tooltip move along with the mouse
-        //$('#tooltip').css('z-index', 2147483647 );
-        //$('#tooltip').css('position', 'fixed' );
-        $('#tooltip').css('top', e.pageY + 10 );
-        $('#tooltip').css('left', e.pageX - x_dist );
-
-    }).mouseout(function() {
-        //Remove the appended tooltip template
-        $(this).children('div#tooltip').remove();
-    });
-}
 
 //***************************************************************************** Text Editor
 if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
