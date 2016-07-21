@@ -5,15 +5,13 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.0
+// @version     1.4.1
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       unsafeWindow
 // @author      brenomirandi & Royalgamer06
-// @downloadURL https://github.com/Breno-M/TGE/raw/master/TGE.user.js
-// @updateURL   https://github.com/Breno-M/TGE/raw/master/TGE.user.js
 // ==/UserScript==
 
 //***************************************************************************** Config
@@ -348,7 +346,7 @@ function readCookie(name) {
 }
 
 //***************************************************************************** Custom Order
-if (location.href.indexOf("manual=true") === -1 && location.href.indexOf("?action=custom_game") > -1 && bOrder) {
+if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.indexOf("manual=true") === -1 && location.href.indexOf("?action=custom_game") > -1 && bOrder) {
     $("form").remove();
     $(".main_section_content").prepend("<input style='width:450px;float:left;background:none;' id='steamsearch' type='text'>");
     $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float:right;margin-right:120px;margin-top:5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
@@ -364,7 +362,7 @@ if (location.href.indexOf("manual=true") === -1 && location.href.indexOf("?actio
                 onload: function(data) {
                     $("#autocomplete").html("");
                     var parser = new DOMParser();
-                    parser.parseFromString(data.responseText, "text/html").querySelectorAll('[data-ds-appid]').forEach(function(item) {
+                    Array.from(parser.parseFromString(data.responseText, "text/html").querySelectorAll('[data-ds-appid]')).forEach(function(item) {
                         var appid = item.getAttribute("data-ds-appid");
                         var itemlink = item.getAttribute("href").split("?")[0];
                         var itemName = item.querySelector(".match_name").innerHTML;
@@ -549,13 +547,13 @@ if (location.href.indexOf("/profiles/") > -1 && bWishlist) {
                     $("#uprofile_content").css("visibility", "hidden");
                     var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
                     var rows = $(".tbl_last > tbody > tr");
-                    rows[rows.length-1].childNodes.forEach(function(e) { e.removeAttribute("style"); });
+                    Array.from(rows[rows.length-1].childNodes).forEach(function(e) { e.removeAttribute("style"); });
 
                     for (var i = 1; i < max; i++) {
                         (function(i, max) {
                             $.get("http://www.tremorgames.com/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + (10 * i), function(data) {
                                 var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
-                                rows[rows.length-1].childNodes.forEach(function(e) { e.removeAttribute("style"); });
+                                Array.from(rows[rows.length-1].childNodes).forEach(function(e) { e.removeAttribute("style"); });
                                 $( "#UserWishlistItems > table.tbl_last > tbody").append(rows);
                                 if (i == max-1) {
                                     setTimeout(function() {
