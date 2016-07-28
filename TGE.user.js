@@ -930,7 +930,7 @@ if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
     if(isChrome)
         commentArea = document.getElementById("newcomment");
 
-    $(commentArea).before('<center><img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img><img src="http://i.imgur.com/OMUDRHi.png" id="itaIco" ></img><img src="http://i.imgur.com/en3TT2f.png" id="h1Ico" ></img><img src="http://i.imgur.com/klDXQh9.png" id="h2Ico" ></img><img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img><img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img><img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img><img src="http://i.imgur.com/APywE0o.png" id="tableIco" ></img></center>');
+    $(commentArea).before('<center><img src="http://i.imgur.com/3ykkHdZ.png" id="boldIco" ></img> <img src="http://i.imgur.com/LDNVNIQ.png" id="itaIco" ></img> <img src="http://i.imgur.com/oCLZpvE.png" id="h1Ico" ></img> <img src="http://i.imgur.com/lwnVL9f.png" id="h2Ico" ></img> <img src="http://i.imgur.com/9riDUhY.png" id="hrIco" ></img> <img src="http://i.imgur.com/VBjaCqg.png" id="linkIco" ></img> <img src="http://i.imgur.com/YgPVdrs.png" id="imgIco" ></img> <img src="http://i.imgur.com/p9Dy5k7.png" id="tableIco" ></img></center>');
 
     document.getElementById("boldIco").addEventListener("click",function(){
         addTag("**", "**");
