@@ -433,7 +433,7 @@ if (location.href.indexOf("action=chat") === -1) {
         $.get("http://www.tremorgames.com/?action=chat", function(data) {
             if (document.getElementById("main_chat") === null) {
                 $("#floatingChat").html($(".main_section_content", data));
-                $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+                $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose'>");
                 $("#btnClose").click(function() {
                     clearInterval(refreshInt);
                     $(this).parent().parent().parent().parent().remove();
