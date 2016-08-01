@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name        Tremorgames Enhanced
 // @namespace   http://www.tremorgames.com/?action=viewtopic&topicid=79097
+// @support     http://www.tremorgames.com/?action=viewtopic&topicid=79097
 // @icon        http://www.tremorgames.com/templates/tremor/images/favicon.ico
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.2
+// @version     1.4.3
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -383,10 +384,13 @@ function reset(){
     $('#reset').text('Done!');
 }
 function syncSteam() {
-    $('#syncSteam').parent().html('<center id="syncSteam"><img style="margin-top: 10px;" src="ajax-loader.gif"></center>');
+    $('#syncSteam').parent().html('<center id="syncSteam"><img style="margin-top: 10px;" src="' + domain + 'ajax-loader.gif"></center>');
     ajaxSteamSync();
 }
+
 var isChrome = !!window.chrome;
+var domain = "http://www.tremorgames.com/";
+if ($("div.header-right ul.nav.nav-pills li:first") !== null) $("div.header-right ul.nav.nav-pills li:first").html('<div class="btn-group" style="margin-top:3px;"> <a style="color: white;" class="btn btn-danger btn-small" href="http://www.tremorgames.com/?action=shop">Tremor Rewards</a> <button class="btn dropdown-toggle btn-danger btn-small" data-toggle="dropdown"> <span class="caret"></span> </button> <ul class="dropdown-menu"> <li><a href="http://www.tremorgames.com/?action=shop">Item Store</a></li> <li><a href="http://www.tremorgames.com/index.php?action=custom_game">Custom Order</a></li> </ul> </div>');
 
 //***************************************************************************** Dark Theme
 if (bTheme) {
@@ -405,6 +409,32 @@ if (bTheme) {
         'background: #262626; }';
 
     GM_addStyle(css);
+}
+
+//***************************************************************************** Chat
+$("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: 300px; height: 520px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
+RefreshChat();
+unsafeWindow.SendChatMessage = function() {
+    baseurl = document.getElementById("base_url").value;
+    myurl = baseurl + "/achievements/ajax_sendchat.php";
+    chat_text = document.getElementById("chat_text").value;
+    if (chat_text.trim() == "") return false;
+    $.ajaxSetup({
+        cache: false
+    });
+    $.post(myurl, { chat_text: chat_text }, RefreshChat);
+    document.getElementById("chat_text").value = "";
+    return false;
+}
+
+function RefreshChat() {
+    $.get("http://www.tremorgames.com/?action=chat", function(data) {
+        $("#floatingChat").html($(".main_section_content", data));
+        $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+        $("#main_chat").css("overflow", "hidden");
+        $("#main_chat > div > div:nth-child(2)").css("width", "auto");
+        $("#main_chat").scrollTop($("#main_chat").height());
+    });
 }
 
 //***************************************************************************** Cookies
@@ -444,7 +474,7 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
                         right_text += "<div class='tooltip_options' style='margin-top:4px;'><span style='font-size:14px;'><b>" + itemPrice + "</b> (" + itemCoins + " Tremor Coins)</span</div>";
                         $("#autocomplete").append('<a href="#" id="result_' + appid + '"><li><div class="eac-item">' + image_text + '<div>' + right_text  + '</div><div style="clear:both;"></div></div></div></li></a>');
                         $("#result_" + appid).click(function() {
-                            $("#steamsearch").attr("style", "width:450px;float:left;background:url('ajax-loader.gif') no-repeat right center;");
+                            $("#steamsearch").attr("style", "width:450px;float:left;background:url('" + domain + "ajax-loader.gif') no-repeat right center;");
                             $("#autocomplete").hide();
                             $.post("http://www.tremorgames.com/?action=custom_game_submit", { url: itemlink }, function(data) {
                                 $("#steamsearch").attr("style", "width:450px;float:left;background:none;");
@@ -495,7 +525,7 @@ function deleteSelected() {
     if (checked.length > 0) {
         if (confirm("Are you sure you wish to delete these messages?")) {
             $("table").hide();
-            $(".main_section_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:100px; height:160px;" align="center"><img src="/images/loading.gif"></div>');
+            $(".main_section_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:100px; height:160px;" align="center"><img src="' + domain + '/images/loading.gif"></div>');
             for (var i = 0; i < checked.length; i++) {
                 (function(i) {
                     $(checked[i].parentNode.parentNode).remove();
@@ -537,9 +567,12 @@ if (location.href.indexOf("?action=showitem&itemid=") && document.getElementById
 
 //***************************************************************************** Shop
 if (location.href.indexOf("?action=shop") > -1 && bSelectiveItems) {
+    if (GM_getValue("o_checked") == "false" && location.href == "http://www.tremorgames.com/?action=shop") {
+        location.href = "http://www.tremorgames.com/?action=shop&searchterm=+";
+    }
     var filters = '<br> Hide unaffordable items : <input type="checkbox" id="unaffordable">';
     if (bSteam) {
-        filters += '<br> Hide items owned on steam : <input type="checkbox" id="steamowned"><img src="ajax-loader.gif" id="ajaxloader" style="display: none;">';
+        filters += '<br> Hide items owned on steam : <input type="checkbox" id="steamowned"><img src="' + domain + 'ajax-loader.gif" id="ajaxloader" style="display: none;">';
     }
     $("#frm_shop_srch > div > div").removeAttr("style").css("text-align", "right").css("margin-right", "16px").css("margin-top", "-12px").append(filters);
 
@@ -569,36 +602,38 @@ if (location.href.indexOf("?action=shop") > -1 && bSelectiveItems) {
         var input = this;
         if (input.checked) {
             GM_setValue("s_checked", "true");
-            $(this).hide();
-            $("#ajaxloader").show();
-            if ($(".shop_item_box.steamowned").length > 0) {
-                Array.from($(".shop_item_box.steamowned")).forEach(function(item) {
-                    $(item).hide();
-                });
-                $(input).show();
-                $("#ajaxloader").hide();
-            } else {
-                var items = Array.from($("div.main_section_box a.popover_tooltip"));
-                items.forEach(function(item, i) {
-                    (function(i) {
-                        $.get(item.href, function(data) {
-                            if ($("#productlink", data).length > 0) {
-                                if ($("#productlink", data).attr("href").indexOf("steampowered.com/app/") > -1) {
-                                    var appid = $("#productlink", data).attr("href").split("/")[4];
-                                    var ownedAppids = GM_getValue("ownedAppids");
-                                    if ($.inArray(appid, ownedAppids.split(",")) > -1) {
-                                        $(item.parentNode).hide();
-                                        $(item.parentNode).addClass("steamowned");
+            var items = Array.from($("div.main_section_box a.popover_tooltip"));
+            if (items.length > 0) {
+                $(this).hide();
+                $("#ajaxloader").show();
+                if ($(".shop_item_box.steamowned").length > 0) {
+                    Array.from($(".shop_item_box.steamowned")).forEach(function(item) {
+                        $(item).hide();
+                    });
+                    $(input).show();
+                    $("#ajaxloader").hide();
+                } else {
+                    items.forEach(function(item, i) {
+                        (function(i) {
+                            $.get(item.href, function(data) {
+                                if ($("#productlink", data).length > 0) {
+                                    if ($("#productlink", data).attr("href").indexOf("steampowered.com/app/") > -1) {
+                                        var appid = $("#productlink", data).attr("href").split("/")[4];
+                                        var ownedAppids = GM_getValue("ownedAppids");
+                                        if ($.inArray(appid, ownedAppids.split(",")) > -1) {
+                                            $(item.parentNode).hide();
+                                            $(item.parentNode).addClass("steamowned");
+                                        }
                                     }
                                 }
-                            }
-                            if (i == items.length - 1) {
-                                $(input).show();
-                                $("#ajaxloader").hide();
-                            }
-                        });
-                    })(i);
-                });
+                                if (i == items.length - 1) {
+                                    $(input).show();
+                                    $("#ajaxloader").hide();
+                                }
+                            });
+                        })(i);
+                    });
+                }
             }
         } else if (!input.checked) {
             GM_setValue("s_checked", "false");
@@ -610,58 +645,128 @@ if (location.href.indexOf("?action=shop") > -1 && bSelectiveItems) {
         }
     });
 
+    $("input[name=hideoutofstock]").live("change", function() {
+        if (!this.checked && location.href.indexOf("searchterm=+") == -1) {
+            GM_setValue("o_checked", "false");
+            if (location.href.indexOf("action=shopbrowse") > -1) {
+                location.href = location.href + "&hideoutofstock=0";
+            } else {
+                location.href = location.href + "&searchterm=+";
+            }
+        } else if (this.checked && location.href.indexOf("searchterm=+") > -1) {
+            GM_setValue("o_checked", "true");
+            if (location.href.indexOf("action=shopbrowse") > -1) {
+                location.href = location.href.replace("&hideoutofstock=0", "");
+            } else {
+                location.href = location.href.replace("&searchterm=+", "");
+            }
+        }
+    });
+
     var u_checked = GM_getValue("u_checked");
     var s_checked = GM_getValue("s_checked");
+    var o_checked = GM_getValue("o_checked");
     if (u_checked == "true") {
         $("#unaffordable").click();
     }
     if (s_checked == "true") {
         $("#steamowned").click();
     }
+    if (o_checked == "true" || location.href.indexOf("searchterm=+") == -1) {
+        document.querySelector("input[name=hideoutofstock]").checked = true;
+    }
 }
 
 //***************************************************************************** Export Items
+if (location.href.indexOf("/profiles/") > -1 && bInventory) {
+    var myuid = readCookie("uid");
+    var uid = location.href.split("/")[4];
+    if (myuid == uid) {
+        $("#prf_tab6 a").removeAttr("onclick");
+        $("#prf_tab6 a").click(function() {
+            for (i = 1; i <= 9; i++) {
+                if (i == 6) {
+                    document.getElementById('prf_tab' + i).className = "actv";
+                } else {
+                    document.getElementById('prf_tab' + i).className = "";
+                }
+            }
+            var base_url = $("#base_url").val();
+            document.getElementById('uprofile_content').innerHTML = '<div style="clear:both; padding-top:160px; height:160px;" align="center"><img src="' + domain + '/images/loading.gif"></div>';
+            xmlHttp = GetXmlHttpObject();
+            if (xmlHttp === null) {
+                alert("Browser does not support HTTP Request");
+                return;
+            }
+            var url = base_url + "ajaxfunctions.php" + "?page=load_profiletabs&pid=6&userid=" + uid;
+            xmlHttp.onreadystatechange = function() {
+                stateChanged_PFtab();
+                if (myuid == uid) {
+                    Array.from($(".use_item_col span")).forEach(function(item) {
+                        var t = item.innerHTML;
+                        if (t.indexOf("http") > -1) {
+                            item.innerHTML = "<a target='_blank' href='" + t + "'>" + t + "</a>";
+                        }
+                    });
+                    $("#uprofile_content").prepend('<button id="btnExpandAll" class="cssbutton" style="float: right; margin-top: 10px; margin-right: 10px;">Load all pages</button>');
+                    $("#btnExpandAll").click(expandAll);
+                    $("#uprofile_content").prepend('<button id="btnExportKeys" class="cssbutton" style="float: right; margin-top: 10px; margin-right: 10px;">Export steam keys</button>');
+                    $("#btnExportKeys").click(exportAll);
+                }
+            };
+            xmlHttp.open("GET", url, true);
+            xmlHttp.send(null);
+        });
+    }
+}
+
 function expandAll() {
     var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
     var uid = location.href.split("/")[4];
-
+    var rows = $(".tbl_last > tbody > tr");
+    Array.from(rows[rows.length-1].childNodes).forEach(function(e) { e.removeAttribute("style"); });
     for (var i = 1; i < max; i++) {
         var start = 10 * i;
         $.get( "http://www.tremorgames.com/achievements/ajax_show_useritems.php?userid=" + uid + "&limitstart=" + start, function(data) {
             var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
+            Array.from(rows[rows.length-1].childNodes).forEach(function(e) { e.removeAttribute("style"); });
+            Array.from($(".use_item_col span", rows)).forEach(function(item) {
+                var t = item.innerHTML;
+                if (t.indexOf("http") > -1) {
+                    item.innerHTML = "<a target='_blank' href='" + t + "'>" + t + "</a>";
+                }
+            });
             $( "#UserItems > table.tbl_last > tbody").append(rows);
         });
     }
-
-    $("div.ach_paging_ajax").hide();
+    $("div.ach_paging_ajax").remove();
 }
 
-if (location.href.indexOf("/profiles/") > -1 && bInventory) {
-    var ebtn = document.createElement("button");
-    ebtn.setAttribute("id", "btnExportKeys");
-    ebtn.setAttribute("class", "cssbutton");
-    ebtn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
-    ebtn.setAttribute("onClick", "var allnames = $('.txt a'); var allitems = $('.use_item_col span'); var msgWin = window.open('', 'Your Items', 'width=680, height=420'); for (var j = 0; j < allitems.length; j++) { if (!(allitems[j].innerHTML.indexOf('Item Sent') > -1)) { msgWin.document.writeln(allnames[j].innerHTML + '<br>'); var item = allitems[j].innerHTML; if (item.indexOf('http') > -1) { msgWin.document.writeln('<a target=\"_blank\" href=\"' + item + '\">' + item + '</a><br><br>'); } else { msgWin.document.writeln(item + '<br><br>'); } } }", false);
-    ebtn.innerHTML = "Export steam keys";
-
-    var lbtn = document.createElement("button");
-    lbtn.setAttribute("id", "btnExpandAll");
-    lbtn.setAttribute("class", "cssbutton");
-    lbtn.setAttribute("style", "float: right; margin-top: 10px; margin-right: 10px;");
-    lbtn.addEventListener("click", expandAll, false);
-    lbtn.innerHTML = "Load all pages";
-
-    setInterval(function() {
-        if (document.getElementById("UserItems") !== null && document.getElementById("btnExportKeys") === null && document.getElementById("btnExpandAll") === null) {
-            var myuid = readCookie("uid");
-            var uid = location.href.split("/")[4];
-
-            if (myuid == uid) {
-                $("#uprofile_content").prepend(lbtn);
-                $("#uprofile_content").prepend(ebtn);
-            }
+function exportAll() {
+    var data = "";
+    Array.from($("#UserItems > table.tbl_last > tbody > tr")).forEach(function(item) {
+        if ($(item).text().match(/[A-NP-RTV-Z02-9]{5}(-[A-NP-RTV-Z02-9]{5}){2}/)) {
+            var name = $(".txt a", item).text();
+            var value = $(".use_item_col span", item).text();
+            data += name + "\r\n" + value + "\r\n\r\n";
         }
-    }, 100);
+    });
+    download("tremorgames_export.txt", data);
+}
+
+function download(filename, data) {
+    var blob = new Blob([data], {type: 'text/csv'});
+    if(window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveBlob(blob, filename);
+    }
+    else{
+        var elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = filename;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+    }
 }
 
 //***************************************************************************** Wishlist
@@ -689,10 +794,12 @@ if (location.href.indexOf("/profiles/") > -1 && bWishlist) {
             stateChanged_PFtab();
             if (document.getElementById("btnRemoveOwned") === null && myuid == uid) {
                 if (myuid == uid) {
-                    $("#uprofile_content").prepend("<button id='btnRemoveOwned' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove redeemed items</button>");
-                    $("#btnRemoveOwned").click(RemoveOwned);
+                    $("#uprofile_content").prepend("<button id='btnHideOutOfStock' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Hide out of stock</button><br>");
+                    $("#btnHideOutOfStock").click(hideOutOfStock);
+                    $("#uprofile_content").prepend("<button id='btnRemoveOwned' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove redeemed</button>");
+                    $("#btnRemoveOwned").click(removeOwned);
                     if (bSteam) {
-                        $("#uprofile_content").prepend("<button id='btnRemovedSteam' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove owned items on Steam</button>");
+                        $("#uprofile_content").prepend("<button id='btnRemovedSteam' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove owned on Steam</button>");
                         $("#btnRemovedSteam").click(removeSteam);
                     }
                 }
@@ -734,7 +841,28 @@ if (location.href.indexOf("/profiles/") > -1 && bWishlist) {
     });
 }
 
-function RemoveOwned() {
+function hideOutOfStock() {
+    var stock = $("#UserWishlistItems tbody td.wdth3");
+    var html = $("#btnHideOutOfStock").html();
+    if (stock.length > 0) {
+        for (var i = 0; i < stock.length; i++) {
+            if (parseInt(stock[i].innerHTML) <= 0) {
+                if (html.indexOf("Hide") > -1) {
+                    $(stock[i].parentNode).hide();
+                } else {
+                    $(stock[i].parentNode).show();
+                }
+            }
+        }
+    }
+    if (html.indexOf("Hide") > -1) {
+        $("#btnHideOutOfStock").html(html.replace("Hide", "Show"));
+    } else {
+        $("#btnHideOutOfStock").html(html.replace("Show", "Hide"));
+    }
+}
+
+function removeOwned() {
     var status_items = $("#UserWishlistItems div+ div");
     if (status_items.length > 0) {
         for (var i = 0; i < status_items.length; i++) {
@@ -930,7 +1058,7 @@ if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
     if(isChrome)
         commentArea = document.getElementById("newcomment");
 
-    $(commentArea).before('<center><img src="http://i.imgur.com/3ykkHdZ.png" id="boldIco" ></img> <img src="http://i.imgur.com/LDNVNIQ.png" id="itaIco" ></img> <img src="http://i.imgur.com/oCLZpvE.png" id="h1Ico" ></img> <img src="http://i.imgur.com/lwnVL9f.png" id="h2Ico" ></img> <img src="http://i.imgur.com/9riDUhY.png" id="hrIco" ></img> <img src="http://i.imgur.com/VBjaCqg.png" id="linkIco" ></img> <img src="http://i.imgur.com/YgPVdrs.png" id="imgIco" ></img> <img src="http://i.imgur.com/p9Dy5k7.png" id="tableIco" ></img></center>');
+    $(commentArea).before('<center><img src="http://i.imgur.com/PyijVpX.png" id="boldIco" ></img><img src="http://i.imgur.com/OMUDRHi.png" id="itaIco" ></img><img src="http://i.imgur.com/en3TT2f.png" id="h1Ico" ></img><img src="http://i.imgur.com/klDXQh9.png" id="h2Ico" ></img><img src="http://i.imgur.com/T7P87HS.png" id="hrIco" ></img><img src="http://i.imgur.com/tUQGJtC.png" id="linkIco" ></img><img src="http://i.imgur.com/mqL0xUh.png" id="imgIco" ></img><img src="http://i.imgur.com/APywE0o.png" id="tableIco" ></img></center>');
 
     document.getElementById("boldIco").addEventListener("click",function(){
         addTag("**", "**");
