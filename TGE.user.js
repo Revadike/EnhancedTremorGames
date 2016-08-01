@@ -412,29 +412,32 @@ if (bTheme) {
 }
 
 //***************************************************************************** Chat
-$("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: 300px; height: 520px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
-RefreshChat();
-unsafeWindow.SendChatMessage = function() {
-    baseurl = document.getElementById("base_url").value;
-    myurl = baseurl + "/achievements/ajax_sendchat.php";
-    chat_text = document.getElementById("chat_text").value;
-    if (chat_text.trim() == "") return false;
-    $.ajaxSetup({
-        cache: false
-    });
-    $.post(myurl, { chat_text: chat_text }, RefreshChat);
-    document.getElementById("chat_text").value = "";
-    return false;
-}
+if (location.href.indexOf("action=chat") === -1) {
+    $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: 300px; height: 520px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
+    RefreshChat();
+    setInterval(RefreshChat, 2000);
+    unsafeWindow.SendChatMessage = function() {
+        baseurl = document.getElementById("base_url").value;
+        myurl = baseurl + "/achievements/ajax_sendchat.php";
+        chat_text = document.getElementById("chat_text").value;
+        if (chat_text.trim() == "") return false;
+        $.ajaxSetup({
+            cache: false
+        });
+        $.post(myurl, { chat_text: chat_text }, RefreshChat);
+        document.getElementById("chat_text").value = "";
+        return false;
+    }
 
-function RefreshChat() {
-    $.get("http://www.tremorgames.com/?action=chat", function(data) {
-        $("#floatingChat").html($(".main_section_content", data));
-        $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
-        $("#main_chat").css("overflow", "hidden");
-        $("#main_chat > div > div:nth-child(2)").css("width", "auto");
-        $("#main_chat").scrollTop($("#main_chat").height());
-    });
+    function RefreshChat() {
+        $.get("http://www.tremorgames.com/?action=chat", function(data) {
+            $("#floatingChat").html($(".main_section_content", data));
+            $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+            $("#main_chat").css("overflow", "hidden");
+            $("#main_chat > div > div:nth-child(2)").css("width", "auto");
+            $("#main_chat").scrollTop(1000000);
+        });
+    }
 }
 
 //***************************************************************************** Cookies
