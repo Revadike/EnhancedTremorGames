@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.3.1
+// @version     1.4.4
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -29,13 +29,19 @@ var bSteam = GM_getValue("bSteam");
 var bEditor = GM_getValue("bEditor");
 var bTheme = GM_getValue("bTheme");
 var bOrder = GM_getValue("bOrder");
+var bChat = GM_getValue("bChat");
 var steamID = GM_getValue("steamID");
 
 if(location.href.indexOf("editprofile") > -1) {
 
     $('div.reg_row:nth-child(18)').after('<div class="reg_row" id="tge_row0"><div class="reg_col1" style="color:#FFB300" width="80%"><b>TGE Features</b></div></div>');
 
-    $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row7"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Sync Steam</button></div></div>');
+    $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row8"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Sync Steam</button></div></div>');
+
+    if(!bChat)
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row7"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleChat" id="toggleChat" name="13">Chat: Off</button></div></div>');
+    else if(bChat)
+        $('#tge_row0').after('<div class="reg_row"><div class="reg_col1" style="position:static !important;" id="tge_row7"><button rel="tooltip" style="width:150px;" onClick="return false;" class="cssbutton" value="toggleChat" id="toggleChat" name="13">Chat: On</button></div></div>');
     $('#tge_row7').after('<div class="reg_col5" style="margin-top: 10px;"><button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="reset" id="reset">Reset Subscriptions</button></div>');
 
     if(!bSteam)
@@ -103,7 +109,7 @@ if(location.href.indexOf("editprofile") > -1) {
         steamid = ($(url).text()).split('/')[4];
         GM_setValue("steamID", steamid);
         if (GM_getValue("lastSync") === undefined) GM_setValue("lastSync", "01-01-1900");
-        $("#syncSteam").parent().parent().append('<span style="font: 9px arial; color: #a82020; display: block;">Last sync: ' + GM_getValue("lastSync") + '</span>');
+        $("#syncSteam").parent().append('<p style="font: 9px arial; color: #a82020;">Last sync: ' + GM_getValue("lastSync") + '</p>');
     } else { //disable steam button
         $('#toggleSteam').attr('disabled','disabled').html('Disabled!');
         $('#syncSteam').attr('disabled','disabled').html('Disabled!');
@@ -112,7 +118,6 @@ if(location.href.indexOf("editprofile") > -1) {
     }
 
     activateToolTip();
-
     $("#reset").click(reset);
     $("#syncSteam").click(syncSteam);
     $("#toggleG").click(toggleG);
@@ -126,6 +131,7 @@ if(location.href.indexOf("editprofile") > -1) {
     $("#toggleE").click(toggleE);
     $("#toggleT").click(toggleT);
     $("#toggleC").click(toggleC);
+    $("#toggleChat").click(toggleChat);
     $("#toggleSteam").click(toggleSteam);
 }
 
@@ -150,7 +156,8 @@ function activateToolTip() {
         "https://i.imgur.com/2f2QhVJ.png", //9 - Giveaways
         "https://i.imgur.com/Kr7M8IS.png", //10- Text Editor
         "https://i.imgur.com/jV7kDqm.png", //11- Dark Theme
-        "https://i.imgur.com/K9VweuF.png"  //12- Custom Order
+        "https://i.imgur.com/K9VweuF.png", //12- Custom Order
+        "https://i.imgur.com/az0KQ1l.png"  //13- Chat
     ];
 
     $('button[rel=tooltip]').mouseover(function(e) {
@@ -379,6 +386,20 @@ function toggleT(){
         document.getElementById("toggleT").innerHTML="Dark Theme: Off";
     }
 }
+function toggleChat(){
+    if(!bChat){
+        GM_setValue("bChat", true);
+        bChat=true;
+        document.getElementById("toggleChat").innerHTML="Chat: On";
+        $("#floatingChat").show();
+    }
+    else if(bChat){
+        GM_setValue("bChat", false);
+        bChat=false;
+        document.getElementById("toggleChat").innerHTML="Chat: Off";
+        $("#floatingChat").hide();
+    }
+}
 function reset(){
     GM_setValue("blocklist", null);
     $('#reset').text('Done!');
@@ -412,7 +433,7 @@ if (bTheme) {
 }
 
 //***************************************************************************** Chat
-if (location.href.indexOf("action=chat") === -1) {
+if (location.href.indexOf("action=chat") === -1 && bChat) {
     $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: 300px; height: 520px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
     RefreshChat();
     var refreshInt = setInterval(RefreshChat, 5000);
@@ -420,33 +441,44 @@ if (location.href.indexOf("action=chat") === -1) {
         baseurl = document.getElementById("base_url").value;
         myurl = baseurl + "/achievements/ajax_sendchat.php";
         chat_text = document.getElementById("chat_text").value;
-        if (chat_text.trim() == "") return false;
+        if (chat_text.trim() === "") return false;
         $.ajaxSetup({
             cache: false
         });
         $.post(myurl, { chat_text: chat_text }, RefreshChat);
         document.getElementById("chat_text").value = "";
         return false;
-    }
+    };
+} else if (location.href.indexOf("action=chat") > -1) {
+    var i = 0;
+    Array.from($("#main_chat > div")).forEach(function(item) {
+        $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
+        i++;
+    });
+}
 
-    function RefreshChat() {
-        $.get("http://www.tremorgames.com/?action=chat", function(data) {
-            if (document.getElementById("main_chat") === null) {
-                $("#floatingChat").html($(".main_section_content", data));
-                $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose'>");
-                $("#btnClose").click(function() {
-                    clearInterval(refreshInt);
-                    $(this).parent().parent().parent().parent().remove();
-                    return false;
-                });
-            } else {
-                $("#main_chat").html($("#main_chat", data).html());
-            }
-            $("#main_chat").css("overflow", "hidden");
-            $("#main_chat > div > div:nth-child(2)").css("width", "auto");
-            $("#main_chat").scrollTop(1000000);
+function RefreshChat() {
+    $.get("http://www.tremorgames.com/?action=chat", function(data) {
+        if (document.getElementById("main_chat") === null) {
+            $("#floatingChat").html($(".main_section_content", data));
+            $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+            $("#btnClose").click(function() {
+                clearInterval(refreshInt);
+                $(this).parent().parent().parent().parent().remove();
+                return false;
+            });
+        } else {
+            $("#main_chat").html($("#main_chat", data).html());
+        }
+        $("#main_chat").css("overflow", "hidden");
+        $("#main_chat > div > div:nth-child(2)").css("width", "auto");
+        var i = 0;
+        Array.from($("#main_chat > div")).forEach(function(item) {
+            $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
+            i++;
         });
-    }
+        $("#main_chat").scrollTop(1000000);
+    });
 }
 
 //***************************************************************************** Cookies
@@ -490,7 +522,15 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
                             $("#autocomplete").hide();
                             $.post("http://www.tremorgames.com/?action=custom_game_submit", { url: itemlink }, function(data) {
                                 $("#steamsearch").attr("style", "width:450px;float:left;background:none;");
-                                var html = $(".main_section_content",data).html();
+                                var html = "";
+                                if (bSteam) {
+                                    var ownedAppids = GM_getValue("ownedAppids");
+                                    var owned = $.inArray(appid, ownedAppids.split(",")) !== -1 ? "Yes" : "No";
+                                    if (owned == "Yes") if (!confirm("You own this game, are you sure you like to add this to cart?")) return false;
+                                    html = $(".main_section_content", data).find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td> <td>" + owned + "</td></tr>").parent().parent().parent().html();
+                                } else {
+                                    html = $(".main_section_content", data).html();
+                                }
                                 $("#result").append("<div id='custom_order_" + appid + "'><hr><div class='subpage_header_backlink'><a href='#' onclick='$(this).parent().parent().remove();' style='font-size: 26px; font-weight: bold;'>X</a></div>" + html + "</div>");
                             });
                         });
@@ -499,6 +539,10 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
             });
         }
     });
+} else if (location.href.indexOf("action=custom_game_submit") > -1 && bOrder && bSteam) {
+    var ownedAppids = GM_getValue("ownedAppids");
+    var owned = $.inArray(appid, ownedAppids.split(",")) !== -1 ? "Yes" : "No";
+    $(".main_section_content").find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td> <td>" + owned + "</td></tr>");
 }
 
 unsafeWindow.PurchaseItem = function(itemid, appid, itemname, price) {
@@ -1061,6 +1105,57 @@ $(document).ready(function () {
     }
 });
 
+
+//***************************************************************************** Report
+if (location.href.indexOf("viewtopic&topicid") > -1) {
+    Array.from($("#innerbg > div.middle-container > div > div > div > table > tbody > tr:nth-child(2) > td:nth-child(2) > div")).forEach(function(item) {
+        var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
+        $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
+    });
+}
+
+unsafeWindow.reportChat = function(chat) {
+    var username = $("div:nth-child(2) > a", chat).text();
+    var username_link = $("div:nth-child(2) > a", chat).attr("href");
+    var date = getToday() + " " + $("div:nth-child(3)", chat).text();
+    var offense = prompt("Offense (please provide screenshots):");
+    var baseurl = document.getElementById("base_url").value;
+    var myurl = baseurl + "ajax_addforum_post.php?topicid=76178";
+    var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + " @ [Chat](http://www.tremorgames.com/?action=chat)";
+    $.ajaxSetup({
+        cache: false
+    });
+    $.post(myurl, { message: commenttext }, function(data) {
+        var obj = jQuery.parseJSON(data);
+        if (obj.status == 1) {
+            alert("Successfully reported this chat message!");
+        } else {
+            alert(obj.message);
+        }
+    });
+};
+
+unsafeWindow.reportPost = function(postid) {
+    var username = $("#postid" + postid).parent().parent().find("td:nth-child(1) > div:nth-child(2) > div:nth-child(2) > a:nth-child(1)").text();
+    var username_link = $("#postid" + postid).parent().parent().find("td:nth-child(1) > div:nth-child(2) > div:nth-child(2) > a:nth-child(1)").attr("href");
+    var date = $("#postid" + postid).parent().parent().find("td:nth-child(1) > div:nth-child(1)").text();
+    var offense = prompt("Offense:");
+    var postid_link = "http://www.tremorgames.com/?action=viewpost&postid=" + postid;
+    var baseurl = document.getElementById("base_url").value;
+    var myurl = baseurl + "ajax_addforum_post.php?topicid=76178";
+    var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + "\n**POST**: [PostID " + postid + "](" + postid_link + ")";
+    $.ajaxSetup({
+        cache: false
+    });
+    $.post(myurl, { message: commenttext }, function(data) {
+        var obj = jQuery.parseJSON(data);
+        if (obj.status == 1) {
+            alert("Successfully reported this post!");
+        } else {
+            alert(obj.message);
+        }
+    });
+};
 
 //***************************************************************************** Text Editor
 if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
