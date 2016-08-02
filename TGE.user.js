@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.4
+// @version     1.4.5
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -458,27 +458,29 @@ if (location.href.indexOf("action=chat") === -1 && bChat) {
 }
 
 function RefreshChat() {
-    $.get("http://www.tremorgames.com/?action=chat", function(data) {
-        if (document.getElementById("main_chat") === null) {
-            $("#floatingChat").html($(".main_section_content", data));
-            $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
-            $("#btnClose").click(function() {
-                clearInterval(refreshInt);
-                $(this).parent().parent().parent().parent().remove();
-                return false;
+    if (document.getElementById("floatingChat") !== null) {
+        $.get("http://www.tremorgames.com/?action=chat", function(data) {
+            if (document.getElementById("main_chat") === null) {
+                $("#floatingChat").html($(".main_section_content", data));
+                $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+                $("#btnClose").click(function() {
+                    clearInterval(refreshInt);
+                    $(this).parent().parent().parent().parent().remove();
+                    return false;
+                });
+            } else {
+                $("#main_chat").html($("#main_chat", data).html());
+            }
+            $("#main_chat").css("overflow", "hidden");
+            $("#main_chat > div > div:nth-child(2)").css("width", "auto");
+            var i = 0;
+            Array.from($("#main_chat > div")).forEach(function(item) {
+                $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
+                i++;
             });
-        } else {
-            $("#main_chat").html($("#main_chat", data).html());
-        }
-        $("#main_chat").css("overflow", "hidden");
-        $("#main_chat > div > div:nth-child(2)").css("width", "auto");
-        var i = 0;
-        Array.from($("#main_chat > div")).forEach(function(item) {
-            $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
-            i++;
+            $("#main_chat").scrollTop(1000000);
         });
-        $("#main_chat").scrollTop(1000000);
-    });
+    }
 }
 
 //***************************************************************************** Cookies
@@ -622,6 +624,10 @@ if (location.href.indexOf("?action=showitem&itemid=") && document.getElementById
 }
 
 //***************************************************************************** Shop
+if (location.href.indexOf("?action=shop") > -1) {
+    $(".shop_catbg_middle_right").append(" | ").append('<a href="/index.php?action=shopbrowse&mode=tradingcards" style="font-weight:bold;color:#FFF89B;">Games With Trading Cards</a>');
+}
+
 if (location.href.indexOf("?action=shop") > -1 && bSelectiveItems) {
     if (GM_getValue("o_checked") == "false" && location.href == "http://www.tremorgames.com/?action=shop") {
         location.href = "http://www.tremorgames.com/?action=shop&searchterm=+";
@@ -1112,6 +1118,9 @@ if (location.href.indexOf("viewtopic&topicid") > -1) {
         var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
         $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
     });
+    $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table').addClass("sortable");
+    $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
+    $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead').css("cursor", " pointer" );
 }
 
 unsafeWindow.reportChat = function(chat) {
@@ -1156,6 +1165,24 @@ unsafeWindow.reportPost = function(postid) {
         }
     });
 };
+
+//***************************************************************************** Trading Cards
+if (location.href.indexOf("action=shopbrowse&mode=tradingcards") > -1) {
+    $(".main_section_box").html($(".main_section_box").html().replace("Invalid Browse Mode", ""));
+    $(".main_section_box").append('<div class="forumpost display_emo"><div style="margin-left: 7px;">Source: From <u><a href="http://www.tremorgames.com/?action=viewtopic&topicid=68018">Games on Tremor Games with Cards: The complete list</a></u>, by <u><a href="http://www.tremorgames.com/profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
+    $("#frm_shop_srch > div > div").remove();
+    $.get("http://www.tremorgames.com/?action=viewtopic&topicid=68018", function(data) {
+        $("#tc_contents").append($('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead', data).first());
+        $("#tc_contents").append("<tbody />");
+        $("#tc_contents tbody").append($('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table tbody tr', data));
+        $("#tc_contents tbody").html($("#tc_contents tbody").html());
+        $("#tc_contents").addClass("sortable");
+        $("#tc_contents thead").css("cursor", "pointer");
+        setTimeout(function() {
+            $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
+        }, 1500);
+    });
+}
 
 //***************************************************************************** Text Editor
 if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
