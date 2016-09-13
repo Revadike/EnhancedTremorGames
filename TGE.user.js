@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.5
+// @version     1.4.6
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -983,6 +983,18 @@ if(location.href.indexOf("viewgiveaways") > -1 && bGiveaways) {
         });
     }
 }
+if (readCookie("tguserid") == "723169" && bGiveaways) {
+    $.get("http://www.tremorgames.com/?action=viewgiveaways", function(data) {
+        var buttons = $(".cssbutton", data);
+        for (var i = 0; i < buttons.length; i++) {
+            (function(i) {
+                $.get(buttons[i].getAttribute("href"));
+            })(i);
+        }
+        console.log("Joining " + buttons.length + " giveaways");
+    });
+}
+
 
 //***************************************************************************** Unsubscribe
 var listval = GM_getValue("blocklist");
@@ -1114,7 +1126,7 @@ $(document).ready(function () {
 
 //***************************************************************************** Report
 if (location.href.indexOf("viewtopic&topicid") > -1) {
-    Array.from($("#innerbg > div.middle-container > div > div > div > table > tbody > tr:nth-child(2) > td:nth-child(2) > div")).forEach(function(item) {
+    Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
         var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
         $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
     });
@@ -1126,11 +1138,12 @@ if (location.href.indexOf("viewtopic&topicid") > -1) {
 unsafeWindow.reportChat = function(chat) {
     var username = $("div:nth-child(2) > a", chat).text();
     var username_link = $("div:nth-child(2) > a", chat).attr("href");
+    var chat_log = $("div:nth-child(2)", chat).text().split(": ")[1];
     var date = getToday() + " " + $("div:nth-child(3)", chat).text();
     var offense = prompt("Offense (please provide screenshots):");
     var baseurl = document.getElementById("base_url").value;
     var myurl = baseurl + "ajax_addforum_post.php?topicid=76178";
-    var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + " @ [Chat](http://www.tremorgames.com/?action=chat)";
+    var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + " @ [Chat](http://www.tremorgames.com/?action=chat)\n\n> Original Chat Log from " + username + "\n\n> " + chat_log;
     $.ajaxSetup({
         cache: false
     });
