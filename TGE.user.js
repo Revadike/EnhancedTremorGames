@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.6
+// @version     1.4.7
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -496,7 +496,7 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
     $("form").remove();
     $(".main_section_content").prepend("<input style='width:450px;float:left;background:none;' id='steamsearch' type='text'>");
     $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float:right;margin-right:120px;margin-top:5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
-    $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div>");
+    $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div><div class='item_purchase'><hr><label style=''><b>Total: </b><span id='total'>0 Tremor Coins</span></label><a class='btn btn-success ' style='width:140px;color:white' href='javascript:PurchaseAllItems()'>Redeem All</a></div>");
     $("#steamsearch").live("change paste keyup", function() {
         if ($(this).val().trim() === "") {
             $("#autocomplete").hide();
@@ -533,7 +533,10 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
                                 } else {
                                     html = $(".main_section_content", data).html();
                                 }
-                                $("#result").append("<div id='custom_order_" + appid + "'><hr><div class='subpage_header_backlink'><a href='#' onclick='$(this).parent().parent().remove();' style='font-size: 26px; font-weight: bold;'>X</a></div>" + html + "</div>");
+                                $("#result").append("<div id='custom_order_" + appid + "'><hr><div class='subpage_header_backlink'><a href='javascript:DeleteItem(" + appid + ")' style='font-size: 26px; font-weight: bold;'>X</a></div>" + html + "</div>");
+                                $(".item_purchase").removeAttr("style");
+                                var totalprice = parseInt($("#total").text().split(" ")[0]) + parseInt(itemCoins);
+                                $("#total").text(totalprice + " Tremor Coins");
                             });
                         });
                     });
@@ -547,6 +550,14 @@ if (location.href.indexOf("action=custom_game_submit") === -1 && location.href.i
     $(".main_section_content").find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td> <td>" + owned + "</td></tr>");
 }
 
+unsafeWindow.DeleteItem = function(appid) {
+    var elem = $("#custom_order_" + appid);
+    var price = $(elem).find("table > tbody > tr:nth-child(5) > td:nth-child(2)").text();
+    var totalprice = parseInt($("#total").text().split(" ")[0]) - parseInt(price);
+    $("#total").text(totalprice + " Tremor Coins");
+    $(elem).remove();
+}
+
 unsafeWindow.PurchaseItem = function(itemid, appid, itemname, price) {
     smoke.confirm("Are you sure you want to redeem " + itemname + " for "  +  price + " Tremor Coins?", function(e) {
         if (e) {
@@ -558,6 +569,26 @@ unsafeWindow.PurchaseItem = function(itemid, appid, itemname, price) {
             });
             $.post(myurl, { itemid: itemid, nonce: nonce, appid: appid }, function(data) {
                 smoke.alert(data);
+            });
+        }
+    }, { ok: "Yes", cancel: "No", classname: "custom-class", reverseButtons: true });
+};
+
+unsafeWindow.PurchaseAllItems = function() {
+    var price = document.getElementById("total").innerHTML;
+    smoke.confirm("Are you sure you want to redeem all above items for "  +  price + "?", function(e) {
+        if (e) {
+            baseurl = document.getElementById("base_url").value;
+            myurl= baseurl + "achievements/ajax_buyitem.php";
+            nonce = document.getElementById("nonce").innerHTML;
+            $.ajaxSetup({
+                cache: false
+            });
+            $("#result > div").each(function(i, item) {
+                var appid = $(item).attr("id").replace("custom_order_", "");
+                $.post(myurl, { itemid: 151014, nonce: nonce, appid: appid }, function(data) {
+                    smoke.alert(data);
+                });
             });
         }
     }, { ok: "Yes", cancel: "No", classname: "custom-class", reverseButtons: true });
@@ -994,6 +1025,8 @@ if (readCookie("tguserid") == "723169" && bGiveaways) {
         console.log("Joining " + buttons.length + " giveaways");
     });
 }
+
+//***************************************************************************** Accept Friends
 
 
 //***************************************************************************** Unsubscribe
