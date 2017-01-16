@@ -1143,7 +1143,7 @@ if(((location.href.indexOf("action=forums") > -1)||(location.href.indexOf("actio
     for (var i=2 ; i < links.snapshotLength; i++)
     {
         var thisLink = links.snapshotItem(i);
-        var thisLinkT = linksT.snapshotItem((i-2) + alertCount);
+        var thisLinkT = linksT.snapshotItem((i+2) + alertCount);
         thisLink.href = thisLinkT.href+'&page='+pg;
         thisLink.text += ' »';
     }
