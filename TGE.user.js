@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.8
+// @version     1.4.9
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -31,6 +31,7 @@ var bTheme = GM_getValue("bTheme");
 var bOrder = GM_getValue("bOrder");
 var bChat = GM_getValue("bChat");
 var steamID = GM_getValue("steamID");
+var bChatSize = GM_getValue("bChatSize", 4);
 
 if(location.href.indexOf("editprofile") > -1) {
 
@@ -413,6 +414,10 @@ var isChrome = !!window.chrome;
 var domain = "http://www.tremorgames.com/";
 if ($("div.header-right ul.nav.nav-pills li:first") !== null) $("div.header-right ul.nav.nav-pills li:first").html('<div class="btn-group" style="margin-top:3px;"> <a style="color: white;" class="btn btn-danger btn-small" href="http://www.tremorgames.com/?action=shop">Tremor Rewards</a> <button class="btn dropdown-toggle btn-danger btn-small" data-toggle="dropdown"> <span class="caret"></span> </button> <ul class="dropdown-menu"> <li><a href="http://www.tremorgames.com/?action=shop">Item Store</a></li> <li><a href="http://www.tremorgames.com/index.php?action=custom_game">Custom Order</a></li> </ul> </div>');
 
+var y = document.getElementsByClassName('nav nav-pills');
+GM_addStyle(".top-menus1{font-size:11px !important;}");
+GM_addStyle(".btn-small{font-size:11px !important;}");
+
 //***************************************************************************** Dark Theme
 if (bTheme) {
     var css = 'html {-webkit-filter: invert(100%);' +
@@ -433,8 +438,24 @@ if (bTheme) {
 }
 
 //***************************************************************************** Chat
+
+const SIZE_MICRO = [150, 520]; 
+const SIZE_SMALL = [200, 520]; 
+const SIZE_MEDIUM = [250, 520]; 
+const SIZE_DEFAULT = [300, 520]; 
+const SIZE_BIG = [400, 520]; 
+var size = [];    
+
+var n = GM_getValue("bChatSize", 4);
+if(n == 1) size = SIZE_MICRO;
+if(n == 2) size = SIZE_SMALL;
+if(n == 3) size = SIZE_MEDIUM;
+if(n == 4) size = SIZE_DEFAULT;
+if(n == 5) size = SIZE_BIG;
+
+
 if (location.href.indexOf("action=chat") === -1 && bChat) {
-    $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: 300px; height: 520px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
+    $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: " + size[0] + "px; height: " + size[1] + "px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
     RefreshChat();
     var refreshInt = setInterval(RefreshChat, 5000);
     unsafeWindow.SendChatMessage = function() {
@@ -462,11 +483,29 @@ function RefreshChat() {
         $.get("http://www.tremorgames.com/?action=chat", function(data) {
             if (document.getElementById("main_chat") === null) {
                 $("#floatingChat").html($(".main_section_content", data));
-                $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+                if(GM_getValue("bChatSize", 4) != 1)
+                   $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
+                else
+                    $("#floatingChat form").append('&nbsp;&nbsp;&nbsp;<p id="btnClose" align="right" style="display:inline; cursor: pointer; color: gray; font-size: 16px;">x</p>');
+                $("#floatingChat form").append(' <p id="chatConfig" align="right" style="float: right; display:inline; cursor: pointer; color: gray; font-size: 16px; margin-top:5px;">⚙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>');
                 $("#btnClose").click(function() {
                     clearInterval(refreshInt);
                     $(this).parent().parent().parent().parent().remove();
                     return false;
+                });
+                document.getElementById("chatConfig").addEventListener("click",function(){
+                    var c = prompt("Current chat size: " + GM_getValue("bChatSize", 4) + (GM_getValue("bChatSize", 4) == 4 ? " (default)" : "") + "\n\nChoose a size between 1-5:\n\n", "");
+                    if(c != null){
+                        if(c < 1 || c > 5 || c/c != 1){
+                            alert("Invalid value");
+                            return;
+                        }
+                        else{
+                            GM_setValue("bChatSize", c);
+                            bChat=true;
+                            location.reload();
+                        }
+                    }
                 });
             } else {
                 $("#main_chat").html($("#main_chat", data).html());
