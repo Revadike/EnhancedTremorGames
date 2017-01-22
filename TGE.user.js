@@ -2,7 +2,7 @@
 // @name        Tremorgames Enhanced
 // @namespace   http://www.tremorgames.com/?action=viewtopic&topicid=79097
 // @support     http://www.tremorgames.com/?action=viewtopic&topicid=79097
-// @icon        http://www.tremorgames.com/templates/tremor/images/favicon.ico
+// @icon        https://raw.githubusercontent.com/Breno-M/TGE/master/images/tge.ico
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
