@@ -1197,15 +1197,17 @@ $(document).ready(function () {
 
 
 //***************************************************************************** Report
-if (location.href.indexOf("viewtopic&topicid") > -1) {
-    Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
-        var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
-        $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
-    });
-    $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table').addClass("sortable");
-    $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
-    $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead').css("cursor", " pointer" );
-}
+$(document).ready(function () {
+    if (location.href.indexOf("viewtopic&topicid") > -1) {
+        Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
+            var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
+            $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
+        });
+        $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table').addClass("sortable");
+        $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
+        $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead').css("cursor", " pointer" );
+    }
+});
 
 unsafeWindow.reportChat = function(chat) {
     var username = $("div:nth-child(2) > a", chat).text();
