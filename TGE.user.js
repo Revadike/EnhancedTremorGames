@@ -6,7 +6,7 @@
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.9
+// @version     1.4.10
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -1279,24 +1279,26 @@ if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
     if(isChrome)
         commentArea = document.getElementById("newcomment");
 
-    $(commentArea).before('<center><img src="http://i.imgur.com/3ykkHdZ.png" id="boldIco" ></img> <img src="http://i.imgur.com/LDNVNIQ.png" id="itaIco" ></img> <img src="http://i.imgur.com/oCLZpvE.png" id="h1Ico" ></img> <img src="http://i.imgur.com/lwnVL9f.png" id="h2Ico" ></img> <img src="http://i.imgur.com/9riDUhY.png" id="hrIco" ></img> <img src="http://i.imgur.com/VBjaCqg.png" id="linkIco" ></img> <img src="http://i.imgur.com/YgPVdrs.png" id="imgIco" ></img> <img src="http://i.imgur.com/p9Dy5k7.png" id="tableIco" ></img></center>');
+    $(commentArea).before('<center><img src="http://i.imgur.com/3ykkHdZ.png" id="boldIco" ></img> <img src="http://i.imgur.com/LDNVNIQ.png" id="itaIco" ></img> <img src="http://i.imgur.com/oCLZpvE.png" id="h1Ico" ></img> <img src="http://i.imgur.com/lwnVL9f.png" id="h2Ico" ></img> <img src="http://i.imgur.com/49pJ8wT.png" id="codeIco" > <img src="http://i.imgur.com/Ny06cSC.png" id="listIco" > <img src="http://i.imgur.com/9riDUhY.png" id="hrIco" ></img> <img src="http://i.imgur.com/VBjaCqg.png" id="linkIco" ></img> <img src="http://i.imgur.com/YgPVdrs.png" id="imgIco" ></img> <img src="http://i.imgur.com/p9Dy5k7.png" id="tableIco" ></img></center>');
 
     document.getElementById("boldIco").addEventListener("click",function(){
         addTag("**", "**");
     });
-
     document.getElementById("itaIco").addEventListener("click",function(){
         addTag("*", "*");
     });
-
     document.getElementById("h1Ico").addEventListener("click",function(){
         addTag("#", "");
     });
-
     document.getElementById("h2Ico").addEventListener("click",function(){
         addTag("####", "");
     });
-
+    document.getElementById("listIco").addEventListener("click",function(){
+        addTag("* ", "");
+    });
+    document.getElementById("codeIco").addEventListener("click",function(){
+        addTag("`", "`");
+    });
     document.getElementById("hrIco").addEventListener("click",function(){
         var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
         if (sel_txt === "")
@@ -1326,24 +1328,42 @@ if (location.href.indexOf("viewtopic&topicid") > -1 && bEditor) {
 }
 function addTag(prefix, suffix) {
     var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
+    
     if (sel_txt !== ""){
-        var replace = prefix + sel_txt + suffix;
-        if(/\s+$/.test(sel_txt)) replace = prefix + sel_txt.slice(0, -1) + suffix + " ";
-        commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + replace + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+        
+        if(prefix == "* "){
+           var lines = sel_txt.split('\n');
+            sel_txt = "";
+            for(var i = 0; i < lines.length; i++){
+               lines[i] = "* " + lines[i] + "\n";
+               sel_txt += lines[i];
+            }
+            replace = sel_txt;
+        }
+        else{
+           var replace = prefix + sel_txt + suffix;
+            if(/\s+$/.test(sel_txt))
+               replace = prefix + sel_txt.slice(0, -1) + suffix + " ";
+        }
+           commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + replace + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
     }
     commentArea.focus();
 }
 
 function generateCode(isImage) {
+    var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
     var url = prompt("Enter the URL: ", "");
-    if(!url) return;
-    var txt = prompt("Enter a text: ", "");
+    if(!url) 
+        return;
+    if (sel_txt === "")
+       var txt = prompt("Enter a text: ", "");
     var b = "[";
     if(isImage)
         b = "![";
-    var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
     if (sel_txt === "")
         commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
+    else
+        commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + b + sel_txt + "](" + url + ")" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
     commentArea.focus();
 }
 
@@ -1401,3 +1421,69 @@ function CreateTable(cols, rows) {
     if (sel_txt === "") commentArea.value = commentArea.value.substring(0,commentArea.selectionStart) + codeTable + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
     commentArea.focus();
 }
+
+//***************************************************************************** Multiquote
+
+$(document).ready(function () {
+    if (location.href.indexOf("viewtopic&topicid") > -1) {
+        
+        var i = 0;
+        var quotes = "";
+        
+        $("a:contains('Quote')").after('<p class="multiquote" style="font-size:14px; display: inline; cursor: pointer; width: 100px; color: #990000;"> +</p>');
+        
+        var quote = document.getElementsByClassName("multiquote");
+        var messages = document.getElementsByClassName("forumpost display_emo");
+        var commentArea = document.getElementById("newcomment");
+        var users = $('a[href*="profiles/"]');
+
+        for (var i = 0; i < 50; i++) {
+             eval("var addQuote" + i + "= function() { addQuote(" + i + "); };");
+        }
+        
+        function addQuote(n){
+            quotes = "Originally posted by " + users[n + 3].innerHTML + "\n\n";
+            quotes += messages[n].innerHTML;
+            commentArea.value += htmlToFormat(quotes);
+            commentArea.value += "\n#####\n\n\n";
+            if ($('#floatingQuotes').length == 0){
+                $("body").prepend("<div id='floatingQuotes' style='z-index: 100000; position: fixed; right: 0px; top: 0px; padding-right: 10px; padding-left: 10px; background: white; border: 1px solid rgb(221, 221, 221);'><h4>QUOTING<br>" + users[n + 3].innerHTML + "<br></4></div>");
+                destroyPopup();
+            }
+       }
+        
+        function destroyPopup() {
+            setTimeout(function(){ $( "#floatingQuotes" ).remove(); }, 1000);
+        }
+        
+        function htmlToFormat(text){
+            
+            var lines = text.split('\n');
+            text = "";
+            for(var i = 0;i < lines.length; i++){
+                lines[i] = replaceTags(lines[i]);
+                if(lines[i].includes("Originally posted by") && i > 0)
+                    lines[i] = "> " + lines[i] + ": \n";
+                else
+                    lines[i] = "> " + lines[i] + "\n";
+                text += lines[i];
+            }
+            return text;
+        }
+        
+        function replaceTags(text){
+            var subs = ["<p>", "", "</p>", "", "<h2>", "##", "</h2>", "", "<h3>", "###",
+                        "</h3>", "", "<h4>", "####", "</h4>", "", "<hr>", "___\n", "<strong>", "**",
+                        "</strong>", "**", "<ul>", "", "</ul>", "", "<li>", "* ", "</li>", ""];
+            for(var i = 0;i < subs.length; i = i+2){
+                text = text.replace(subs[i], subs[i + 1]);
+            }
+            return text;
+        }
+        for (var i = 0; i < quote.length; i++) {
+            quote[i].addEventListener('click', eval("addQuote" + i), false);
+        }
+    }
+});
+
+
