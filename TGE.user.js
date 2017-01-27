@@ -5,8 +5,8 @@
 // @icon        https://raw.githubusercontent.com/Breno-M/TGE/master/images/tge.ico
 // @description TremorGames Enhanced will enhance your tremorgames experience!
 // @include     *://www.tremorgames.com/*
-// @require     http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js
-// @version     1.4.10
+// @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
+// @version     1.4.11
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -14,6 +14,9 @@
 // @grant       unsafeWindow
 // @author      brenomirandi & Royalgamer06
 // ==/UserScript==
+
+// JQUERY NO CONFLICT
+this.$ = this.jQuery = jQuery.noConflict(true);
 
 //***************************************************************************** Config
 
