@@ -33,7 +33,7 @@
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
-// @version     1.4.14
+// @version     1.4.15
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -1281,10 +1281,14 @@ function scrollToLastPost() {
 
 // ADD REPORT FUNCTION TO TOPICS AND MAKE TABLES SORTABLE
 function addReportToTopic() {
-    Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
+    $("a:contains('Permalink')").each(function() {
+        var postid = $(this).attr("href").split("postid=")[1].split("&")[0];
+        $(this).after('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
+    });
+    /*Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
         var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
         $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
-    });
+    });*/
     $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table').addClass("sortable");
     $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
     $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead').css("cursor", " pointer");
