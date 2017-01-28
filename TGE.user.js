@@ -33,7 +33,7 @@
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
-// @version     1.4.13
+// @version     1.4.14
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -91,6 +91,7 @@ var bGiveaways,
     cfWishlist,
     ajaxLoaderGif,
     tgeIcon,
+    commentArea,
     refreshInt,
     isChrome,
     domain;
@@ -1368,7 +1369,7 @@ function addTradingCardsList() {
 
 // ADD ENHANCED TEXT EDITOR TO TOPIC
 function enhanceTextEditor() {
-    var commentArea = $("#newcomment");
+    commentArea = $("#newcomment")[0];
     $(commentArea).before('<center><img src="' + btnBold + '" id="boldIco"></img><img src="' + btnItalic + '" id="itaIco"></img><img src="' + btnHeader_2 + '" id="h1Ico"></img><img src="' + btnHeader_3 + '" id="h2Ico"></img><img src="' + btnCode + '" id="codeIco"><img src="' + btnList + '" id="listIco"><img src="' + btnHr + '" id="hrIco"></img><img src="' + btnLink + '" id="linkIco"></img><img src="' + btnImage + '" id="imgIco"></img><img src="' + btnTable + '" id="tableIco"></img></center>');
     document.getElementById("boldIco").addEventListener("click", function() {
         addTag("**", "**");
