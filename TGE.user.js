@@ -33,7 +33,7 @@
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
-// @version     1.4.15
+// @version     1.4.17
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -91,6 +91,7 @@ var bGiveaways,
     cfWishlist,
     ajaxLoaderGif,
     tgeIcon,
+    chatSizes,
     commentArea,
     refreshInt,
     isChrome,
@@ -103,6 +104,11 @@ $(document).ready(function() {
 
 // INITIATE TREMOR GAMES ENHANCED
 function initTGE() {
+
+    // DEFAULT AJAX BEHAVIOR
+    $.ajaxSetup({
+        cache: false
+    });
 
     // ASSIGN VALUES TO GLOBAL VARIABLES
     bGiveaways = GM_getValue("bGiveaways", true);
@@ -146,6 +152,7 @@ function initTGE() {
     cfWishlist = GM_getResourceURL("cfWishlist");
     ajaxLoaderGif = GM_getResourceURL("ajaxLoaderGif");
     tgeIcon = GM_getResourceURL("tgeIcon");
+    chatSizes = [[150, 520], [240, 520], [260, 520], [300, 520], [360, 520], [480, 520]];
     isChrome = !!window.chrome;
     domain = "http://www.tremorgames.com/";
 
@@ -161,7 +168,7 @@ function initTGE() {
         ajaxSteamSync();
     if (URLContains("editprofile"))
         addSettings();
-    if (URLContains("action=custom_game") && !URLContains("manual=true") && bCustomOrder)
+    if (URLContains("action=custom_game") && !URLContains("manual=true") && !URLContains("_submit") && bCustomOrder)
         addCustomOrderAutocomplete();
     if (URLContains("action=custom_game_submit") && bSteam)
         addSteamOwnedToCustomOrder();
@@ -340,7 +347,6 @@ function activateToolTip() {
         cfCustom_order, //12- Custom Order
         cfChat //13- Chat
     ];
-
     $('button[rel=tooltip]').mouseover(function(e) {
         var img_i = $(this).attr('name');
         $(this).append('<div id="tooltip"><img src="' + image[img_i] + '"></div>');
@@ -385,7 +391,7 @@ function ajaxSteamSync() {
             GM_setValue("ownedAppids", ownedAppids);
             GM_setValue("lastSync", getToday());
             if ($("#syncSteam").length > 0) {
-                $("#syncSteam").parent().html('<button style="background-color:grey;width:150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Done!</button>');
+                $("#syncSteam").parent().html('<button style="background-color: grey; width: 150px;" onClick="return false;" class="cssbutton" value="syncSteam" id="syncSteam">Done!</button>');
             }
         }
     });
@@ -552,7 +558,7 @@ function toggleChat() {
 // RESET TOPIC SUBSCRIPTIONS FOR CONFIGURATION SETTINGS
 function resetSubscriptions() {
     GM_setValue("blocklist", null);
-    $('#reset').text('Done!');
+    $("#reset").text("Done!");
 }
 
 // SYNCING STEAM FOR CONFIGURATION SETTINGS
@@ -563,14 +569,26 @@ function syncSteam() {
 
 // CHANGE THE TOP MENU
 function customMenu() {
-    var y = document.getElementsByClassName('nav nav-pills');
-    GM_addStyle(".top-menus1{font-size:11px !important;}");
-    GM_addStyle(".btn-small{font-size:11px !important;}");
-    var firstItem = $("div.header-right ul.nav.nav-pills li:first");
-    if ($(firstItem).length > 0) {
-        var htmlReplacement = '<div class="btn-group" style="margin-top:3px;"><a style="color: white;" class="btn btn-danger btn-small" href="/?action=shop">Tremor Rewards</a><button class="btn dropdown-toggle btn-danger btn-small" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu"><li><a href="/?action=shop">Item Store</a></li><li><a href="/index.php?action=custom_game">Custom Order</a></li></ul></div>';
-        $(firstItem).html(htmlReplacement);
-    }
+    var menu = $("div.header-right ul.nav.nav-pills");
+    $(menu).find(">li:has(>a)").remove();
+    $(menu).find("div[style='margin-top:3px;']").css("margin-left", "10px");
+    var community = buildDropdown([{ href: "/?action=forums", title: "Community" }, { href: "/?action=viewgiveaways", title: "Giveaways" }, { href: "/?action=forums", title: "Forums" }, { href: "/?action=chat", title: "Chat" }]);
+    var rewards = buildDropdown([{ href: "/?action=shop", title: "Tremor Rewards" }, { href: "/?action=shop", title: "Item Store" }, { href: "/?action=custom_game", title: "Custom Order" }]);
+    $(menu).prepend(community).prepend(rewards);
+}
+
+// BUILD A HTML STRING FOR A CUSTOMIZABLE DROPDOWN MENU
+function buildDropdown(options) {
+    if (!options || options.length === 0) return;
+    var htmlStr = "<li><div class='btn-group' style='margin-top: 3px; margin-left: 10px;'>";
+    htmlStr += "<a style='color: white;' class='btn btn-danger btn-small' href='" + options[0].href + "'>" + options[0].title + "</a>";
+    htmlStr += "<button class='btn dropdown-toggle btn-danger btn-small' data-toggle='dropdown'><span class='caret'></span></button><ul class='dropdown-menu'>";
+    options.shift();
+    $(options).each(function() {
+        htmlStr += "<li><a href='" + this.href + "'>" + this.title + "</a></li>";
+    });
+    htmlStr += "</ul></div></li>";
+    return htmlStr;
 }
 
 // ADD DARK THEME TO TREMORGAMES
@@ -579,12 +597,10 @@ function addDarkTheme() {
         '-moz-filter: invert(100%);' +
         '-o-filter: invert(100%);' +
         '-ms-filter: invert(100%); } ' +
-
         'img {-webkit-filter: invert(100%);' +
         '-moz-filter: invert(100%);' +
         '-o-filter: invert(100%);' +
         '-ms-filter: invert(100%); }' +
-
         'body { margin-top: -10px;' +
         '-webkit-filter: grayscale(1);' +
         'background: #262626; }';
@@ -593,66 +609,48 @@ function addDarkTheme() {
 
 // ADD FLOATING CHAT
 function addFloatingChat() {
-    const SIZE_MICRO = [150, 520];
-    const SIZE_SMALL = [200, 520];
-    const SIZE_MEDIUM = [250, 520];
-    const SIZE_DEFAULT = [300, 520];
-    const SIZE_BIG = [400, 520];
-    var size = [];
-
     var n = GM_getValue("ChatSize", 4);
-    if (n == 1) size = SIZE_MICRO;
-    if (n == 2) size = SIZE_SMALL;
-    if (n == 3) size = SIZE_MEDIUM;
-    if (n == 4) size = SIZE_DEFAULT;
-    if (n == 5) size = SIZE_BIG;
-
-    unsafeWindow.reportChat = reportChat;
-    $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: " + size[0] + "px; height: " + size[1] + "px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
+    $("body").prepend("<div id='floatingChat' style='z-index: 100000; position: fixed; width: " + chatSizes[n][0] + "px; height: " + chatSizes[n][1] + "px; right: 0px; bottom: 0px; background: white; border: 1px solid rgb(221, 221, 221);'></div>");
     RefreshChat();
     var refreshInt = setInterval(RefreshChat, 5000);
+    unsafeWindow.reportChat = reportChat;
     unsafeWindow.SendChatMessage = function() {
-        baseurl = document.getElementById("base_url").value;
-        myurl = baseurl + "/achievements/ajax_sendchat.php";
-        chat_text = document.getElementById("chat_text").value;
+        chat_text = $("#chat_text").val();
         if (chat_text.trim() === "") return false;
-        $.ajaxSetup({
-            cache: false
-        });
-        $.post(myurl, {
+        $.post("/achievements/ajax_sendchat.php", {
             chat_text: chat_text
         }, RefreshChat);
-        document.getElementById("chat_text").value = "";
+        $("#chat_text").val("");
         return false;
     };
 }
 
 // LOAD NEW CHAT CONTENTS IN FLOATING CHAT
 function RefreshChat() {
-    if (document.getElementById("floatingChat") !== null) {
+    if ($("#floatingChat").length > 0) {
         $.get("/?action=chat", function(data) {
-            if (document.getElementById("main_chat") === null) {
+            if ($("#main_chat").length === 0) {
                 $("#floatingChat").html($(".main_section_content", data));
                 if (GM_getValue("ChatSize", 4) != 1)
                     $("#floatingChat form").append("<input align='right' class='btn' type='Submit' value='Close' id='btnClose' onclick='$(this).parent().parent().parent().parent().remove();return false;'>");
                 else
-                    $("#floatingChat form").append('&nbsp;&nbsp;&nbsp;<p id="btnClose" align="right" style="display:inline; cursor: pointer; color: gray; font-size: 16px;">x</p>');
-                $("#floatingChat form").append(' <p id="chatConfig" align="right" style="float: right; display:inline; cursor: pointer; color: gray; font-size: 16px; margin-top:5px;">⚙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>');
+                    $("#floatingChat form").append('&nbsp;&nbsp;&nbsp;<p id="btnClose" align="right" style="display: inline; cursor: pointer; color: gray; font-size: 16px;">x</p>');
+                $("#floatingChat form").append(' <p id="chatConfig" align="right" style="float: right; display:inline; cursor: pointer; color: gray; font-size: 16px; margin-top: 5px;">⚙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>');
                 $("#btnClose").click(function() {
                     clearInterval(refreshInt);
                     $(this).parent().parent().parent().parent().remove();
                     return false;
                 });
                 $("#chatConfig").click(function() {
-                    var c = prompt("Current chat size: " + GM_getValue("ChatSize", 4) + (GM_getValue("ChatSize", 4) == 4 ? " (default)" : "") + "\n\nChoose a size between 1-5:\n\n", "");
+                    var c = prompt("Current chat size: " + GM_getValue("ChatSize", 4) + (GM_getValue("ChatSize", 4) == 4 ? " (default)" : "") + "\n\nChoose a size between 0-5:\n\n", "");
                     if (c !== null) {
-                        if (c < 1 || c > 5 || c / c != 1) {
+                        if (c < 0 || c > 5 || (c+1) / (c+1) != 1) {
                             alert("Invalid value");
                             return;
                         } else {
                             GM_setValue("ChatSize", c);
                             bChat = true;
-                            location.reload();
+                            $("#floatingChat").css("width", chatSizes[c][0] + "px").css("height", chatSizes[c][1] + "px");
                         }
                     }
                 });
@@ -660,11 +658,12 @@ function RefreshChat() {
                 $("#main_chat").html($("#main_chat", data).html());
             }
             $("#main_chat").css("overflow", "hidden");
-            $("#main_chat > div > div:nth-child(2)").css("width", "auto");
-            var i = 0;
-            Array.from($("#main_chat > div")).forEach(function(item) {
-                $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
-                i++;
+            $("#main_chat > div").each(function() {
+                var username = $("div:nth-child(2) > a", this).text();
+                var username_link = $("div:nth-child(2) > a", this).attr("href");
+                var chat_log = $("div:nth-child(2)", this).text().split(": ")[1];
+                var time = $("div:nth-child(3)", this).text();
+                $(this).append('<a style="border: 0px solid black; float: right; width: 50px; color: grey;" href="javascript:reportChat(\'' + username + '\', \'' + username_link + '\', \'' + chat_log + '\', \'' + time + '\')">Report</a>');
             });
             $("#main_chat").scrollTop(1000000);
         });
@@ -674,9 +673,10 @@ function RefreshChat() {
 // ADD CUSTOM ORDER AUTOCOMPLETE
 function addCustomOrderAutocomplete() {
     $("form").remove();
-    $(".main_section_content").prepend("<input style='width:450px;float:left;background:none;' id='steamsearch' type='text'>");
-    $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float:right;margin-right:120px;margin-top:5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
-    $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div><div class='item_purchase'><hr><label style=''><b>Total: </b><span id='total'>0 Tremor Coins</span></label><a class='btn btn-success ' style='width:140px;color:white' href='javascript:PurchaseAllItems()'>Redeem All</a></div>");
+    $(".main_section_content").prepend("<input style='width: 450px; float: left; background: none;' id='steamsearch' type='text'>");
+    $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float: right; margin-right: 120px; margin-top: 5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
+    $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div>" +
+                            "<div class='item_purchase'><hr><label><b>Total: </b><span id='total'>0 Tremor Coins</span></label><a class='btn btn-success' style='width: 140px; color: white;' href='javascript:PurchaseAllItems()'>Redeem All</a></div>");
     $("#steamsearch").on("change paste keyup", function() {
         if ($(this).val().trim() === "") {
             $("#autocomplete").hide();
@@ -695,10 +695,10 @@ function addCustomOrderAutocomplete() {
                         var itemPrice = item.querySelector(".match_price").innerHTML;
                         var itemCoins = itemPrice == "Free" || itemPrice == "Free Demo" ? 0 : Math.round(parseFloat(itemPrice.replace("$", "")) * 850);
                         var smallImage = item.querySelector(".match_img img").getAttribute("src");
-                        var right_text = "<span style='color:black'>" + itemName + "</span>";
-                        var image_text = "<div style='float:left;margin-right:10px;'><img style='width:70px;height:70px;' src='" + smallImage + "' /></div>";
-                        right_text += "<div class='tooltip_options' style='margin-top:4px;'><span style='font-size:14px;'><b>" + itemPrice + "</b> (" + itemCoins + " Tremor Coins)</span</div>";
-                        $("#autocomplete").append('<a href="#" id="result_' + appid + '"><li><div class="eac-item">' + image_text + '<div>' + right_text + '</div><div style="clear:both;"></div></div></div></li></a>');
+                        var right_text = "<span style='color: black;'>" + itemName + "</span>";
+                        var image_text = "<div style='float: left; margin-right: 10px;'><img style='width: 70px; height: 70px;' src='" + smallImage + "' /></div>";
+                        right_text += "<div class='tooltip_options' style='margin-top: 4px;'><span style='font-size: 14px;'><b>" + itemPrice + "</b> (" + itemCoins + " Tremor Coins)</span</div>";
+                        $("#autocomplete").append('<a href="#" id="result_' + appid + '"><li><div class="eac-item">' + image_text + '<div>' + right_text + '</div><div style="clear: both;"></div></div></div></li></a>');
                         $("#result_" + appid).click(function() {
                             $("#steamsearch").attr("style", "width:450px;float:left;background:url('" + domain + "ajax-loader.gif') no-repeat right center;");
                             $("#autocomplete").hide();
@@ -712,7 +712,7 @@ function addCustomOrderAutocomplete() {
                                     var owned = $.inArray(appid, ownedAppids.split(",")) !== -1 ? "Yes" : "No";
                                     if (owned == "Yes")
                                         if (!confirm("You own this game, are you sure you like to add this to cart?")) return false;
-                                    html = $(".main_section_content", data).find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td> <td>" + owned + "</td></tr>").parent().parent().parent().html();
+                                    html = $(".main_section_content", data).find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td><td>" + owned + "</td></tr>").parent().parent().parent().html();
                                 } else {
                                     html = $(".main_section_content", data).html();
                                 }
@@ -734,23 +734,21 @@ function addCustomOrderAutocomplete() {
         $("#total").text(totalprice + " Tremor Coins");
         $(elem).remove();
     };
-    unsafeWindow.PurchaseItem = function(itemid, appid, itemname, price) {
+    unsafeWindow.PurchaseItem = function(itemid, appid, game_type, itemname, price) {
+        var r = false;
         smoke.confirm("Are you sure you want to redeem " + itemname + " for " + price + " Tremor Coins?", function(e) {
             if (e) {
-                baseurl = document.getElementById("base_url").value;
-                myurl = baseurl + "achievements/ajax_buyitem.php";
-                nonce = document.getElementById("nonce").innerHTML;
-                $.ajaxSetup({
-                    cache: false
-                });
-                $.post(myurl, {
+                var nonce = $("#nonce").html();
+                $.post("/achievements/ajax_buyitem.php", {
                     itemid: itemid,
                     nonce: nonce,
-                    appid: appid
+                    appid: appid,
+                    type: game_type,
+                    price_coins: price
                 }, function(data) {
                     smoke.alert(data);
                 });
-            }
+            } else {}
         }, {
             ok: "Yes",
             cancel: "No",
@@ -759,19 +757,17 @@ function addCustomOrderAutocomplete() {
         });
     };
     unsafeWindow.PurchaseAllItems = function() {
-        var price = document.getElementById("total").innerHTML;
+        var price = $("#total").text();
         smoke.confirm("Are you sure you want to redeem all above items for " + price + "?", function(e) {
             if (e) {
-                baseurl = document.getElementById("base_url").value;
-                myurl = baseurl + "achievements/ajax_buyitem.php";
-                nonce = document.getElementById("nonce").innerHTML;
-                $.ajaxSetup({
-                    cache: false
-                });
-                $("#result > div").each(function(i, item) {
-                    var appid = $(item).attr("id").replace("custom_order_", "");
-                    $.post(myurl, {
-                        itemid: 151014,
+                var xmlHttp;
+                $("#result [href*=PurchaseItem]").each(function() {
+                    var data = $(this).attr("href").split("(")[1].split(")")[0].replace(/\'/g, "").split(",");
+                    var itemid = data[0];
+                    var appid = data[1];
+                    var nonce =$("#nonce").html();
+                    $.post("/achievements/ajax_buyitem.php", {
+                        itemid: itemid,
                         nonce: nonce,
                         appid: appid
                     }, function(data) {
@@ -788,8 +784,9 @@ function addCustomOrderAutocomplete() {
     };
 }
 
-// ADD STEAM GAME OWNERSHIP INFORMATION TO CUSTOM ORDER RESULT
+// ADD STEAM GAME OWNERSHIP INFORMATION TO DEFAULT CUSTOM ORDER RESULT
 function addSteamOwnedToCustomOrder() {
+    var appid = $(".grid a").text().split("/")[4];
     var ownedAppids = GM_getValue("ownedAppids");
     var owned = $.inArray(appid, ownedAppids.split(",")) !== -1 ? "Yes" : "No";
     $(".main_section_content").find("tbody > tr:nth-child(2)").after("<tr><td> Owned </td><td>" + owned + "</td></tr>");
@@ -797,8 +794,8 @@ function addSteamOwnedToCustomOrder() {
 
 // ADD CHECKBOXES TO PRIVATE MESSAGES
 function enhancePrivateMessages() {
-    $("tr[valign=top]").prepend('<td width="40" align="center" valign="middle" style="border-bottom:1px solid #E4E4E3;border-right:1px solid #E4E4E3;"><input type="checkbox"></td>');
-    $("td[align=center]:first").prepend('<button id="deleteButton" style="background-color: #0F96C8; color: white; position: relative; top: -3px; height: 19px; font-size: 12px;">DELETE CHECKED</button>');
+    $("tr[valign=top]").prepend('<td width="40" align="center" valign="middle" style="border-bottom: 1px solid #E4E4E3; border-right: 1px solid #E4E4E3;"><input type="checkbox"></td>');
+    $("td[align=center]:first").prepend('<button id="deleteButton" style="background-color: #0F96C8; color: white; position: relative; top: -5.5px; line-height: 10px; height: 19px; font-size: 12px;">DELETE CHECKED</button>');
     $('.messagecellheaders input[type="checkbox"]').click(function() {
         checkboxes = document.querySelectorAll("input[type=checkbox]");
         for (var i = 0; i < checkboxes.length; i++) {
@@ -810,25 +807,25 @@ function enhancePrivateMessages() {
 
 // DELETE SELECTED PRIVATE MESSAGES
 function deleteSelected() {
-    var checked = document.querySelectorAll('input[type=checkbox]:checked');
+    var checked = $("input[type=checkbox]:checked");
     if (checked.length > 0) {
         if (confirm("Are you sure you wish to delete these messages?")) {
-            $("table").hide();
-            $(".main_section_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:100px; height:160px;" align="center"><img src="' + domain + '/images/loading.gif"></div>');
-            for (var i = 0; i < checked.length; i++) {
-                (function(i) {
-                    $(checked[i].parentNode.parentNode).remove();
-                    $.get(checked[i].parentNode.parentNode.querySelector('a[onclick="return confirmDeleteMessage()"]').getAttribute("href"), function() {
-                        if (i == checked.length - 1) {
-                            $("#loading").remove();
-                            $("table").show();
-                        }
-                    });
-                })(i);
-            }
+            $(".main_section_content table").hide();
+            $(".main_section_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:100px; height:160px;" align="center"><img src="/images/loading.gif"></div>');
+            var ajaxCount = checked.length - 1;
+            $(checked).each(function() {
+                $(this).parent().parent().remove();
+                $.get($(this).parent().parent().find("a[onclick='return confirmDeleteMessage()']").attr("href"), function() {
+                    ajaxCount--;
+                    if (ajaxCount === 0) {
+                        $(".main_section_content table").show();
+                        $("#loading").remove();
+                    }
+                });
+            });
         }
     } else {
-        alert("Please select 1 or more private message(s) and retry");
+        alert("Please select 1 or more private message(s) and try again");
     }
 }
 
@@ -837,53 +834,49 @@ function enhanceShopItem() {
     if ($("#productlink[href*='steampowered.com/app/']").length > 0) {
         var ajaxLoader = '<div id="steamcheck" style="margin-top: -20px; padding-bottom: 10px;"><img src="' + ajaxLoaderGif + '"></div>';
         $('.item_purchase').prepend(ajaxLoader);
-        var appid = document.getElementById("productlink").getAttribute("href").split("/")[4];
+        var appid = $("#productlink").attr("href").split("/")[4];
         var ownedAppids = GM_getValue("ownedAppids");
         if ($.inArray(appid, ownedAppids.split(",")) !== -1)
             $('#steamcheck').html('<b style="font-size: 12px; color: red;">WARNING: You already own this item on steam!</b>');
         else
             $('#steamcheck').html('<b style="font-size: 12px; color: green;">NOTICE: You do not own this item on steam!</b>');
-        var el = document.querySelectorAll(".btn.btn-success.btn-large")[0];
-        el.style = "font-size: 22px;width:25%;";
-        $(el).after('<form id="customorder" action="/?action=custom_game_submit" method="POST" style="display:inline"><input style="visibility: hidden; width: 0px" id="url" name="url" type="text"><button type="submit" class="btn btn-success btn-large" style="font-size: 22px;width:58%;">Custom order</button></form>');
-        document.getElementById("url").value = document.getElementById("productlink").getAttribute("href") + "/";
+        $(".btn.btn-success.btn-large").first().css("font-size", "22px").css("width", "25%").after('<form id="customorder" action="/?action=custom_game_submit" method="POST" style="display: inline;"><input style="visibility: hidden; width: 0px;" id="url" name="url" type="text">' +
+                                                                                                   '<button type="submit" class="btn btn-success btn-large" style="font-size: 22px; width: 58%;">Custom order</button></form>');
+        $("#url").val($("#productlink").attr("href"));
     }
 }
 
 // ADD MORE CATEGORIES AND FILTER OPTIONS TO TREMOR REWARDS SHOP
 function enhanceShop() {
-    $(".shop_catbg_middle_right").append(" | ").append('<a href="/index.php?action=shopbrowse&mode=tradingcards" style="font-weight:bold;color:#FFF89B;">Games With Trading Cards</a>');
-    if (GM_getValue("o_checked") == "false" && location.href == "/?action=shop") {
+    $(".shop_catbg_middle_right").append(" | ").append('<a href="/index.php?action=shopbrowse&mode=tradingcards" style="font-weight: bold; color: #FFF89B;">Games With Trading Cards</a>');
+    /*if (GM_getValue("o_checked") == "false" && location.href == "/?action=shop") {
         location.href = "/?action=shop&searchterm=+";
-    }
+    }*/
     var filters = '<br> Hide unaffordable items : <input type="checkbox" id="unaffordable">';
     if (bSteam) {
         filters += '<br> Hide items owned on steam : <input type="checkbox" id="steamowned"><img src="' + domain + 'ajax-loader.gif" id="ajaxloader" style="display: none;">';
     }
     $("#frm_shop_srch > div > div").removeAttr("style").css("text-align", "right").css("margin-right", "16px").css("margin-top", "-12px").append(filters);
-
     $("#unaffordable").on("change", function() {
         if (this.checked) {
             GM_setValue("u_checked", "true");
             $.get("/achievements/ajax_getusercoins.php", function(coinsresult) {
-                Array.from($("div.main_section_box > div > div.shop_item_box_type:nth-child(4)")).forEach(function(item) {
-                    var price = parseInt(item.innerHTML.replace(" Tremor Coins", ""));
+                $("div.main_section_box > div > div.shop_item_box_type:nth-child(4)").each(function() {
+                    var price = parseInt($(this).text().replace(" Tremor Coins", ""));
                     var coins = parseInt(coinsresult);
-                    //var coins = 10;
                     if (price > coins) {
-                        $(item.parentNode).hide();
-                        $(item.parentNode).addClass("unaffordable");
+                        $(this).parent().hide();
+                        $(this).parent().addClass("unaffordable");
                     }
                 });
             });
         } else if (!this.checked) {
             GM_setValue("u_checked", "false");
-            Array.from($(".shop_item_box.unaffordable:hidden")).forEach(function(item) {
-                $(item).show();
+            $(".shop_item_box.unaffordable:hidden").each(function() {
+                $(this).show();
             });
         }
     });
-
     $("#steamowned").on("change", function() {
         var input = this;
         if (input.checked) {
@@ -925,13 +918,12 @@ function enhanceShop() {
             GM_setValue("s_checked", "false");
             $(input).show();
             $("#ajaxloader").hide();
-            Array.from($(".shop_item_box.steamowned:hidden")).forEach(function(item) {
-                $(item).show();
+            $(".shop_item_box.steamowned:hidden").each(function() {
+                $(this).show();
             });
         }
     });
-
-    $("input[name=hideoutofstock]").on("change", function() {
+    /*$("input[name=hideoutofstock]").on("change", function() {
         if (!this.checked && location.href.indexOf("searchterm=+") == -1) {
             GM_setValue("o_checked", "false");
             if (location.href.indexOf("action=shopbrowse") > -1) {
@@ -947,8 +939,7 @@ function enhanceShop() {
                 location.href = location.href.replace("&searchterm=+", "");
             }
         }
-    });
-
+    });*/
     var u_checked = GM_getValue("u_checked");
     var s_checked = GM_getValue("s_checked");
     var o_checked = GM_getValue("o_checked");
@@ -959,7 +950,7 @@ function enhanceShop() {
         $("#steamowned").click();
     }
     if (o_checked == "true" || location.href.indexOf("searchterm=+") == -1) {
-        document.querySelector("input[name=hideoutofstock]").checked = true;
+        $("input[name=hideoutofstock]")[0].checked = true;
     }
 }
 
@@ -972,26 +963,20 @@ function enhanceInventory() {
         $("#prf_tab6 a").click(function() {
             for (i = 1; i <= 9; i++) {
                 if (i == 6) {
-                    document.getElementById('prf_tab' + i).className = "actv";
+                    $("prf_tab" + i).addClass("actv");
                 } else {
-                    document.getElementById('prf_tab' + i).className = "";
+                    $("prf_tab" + i).removeClass("actv");
                 }
             }
-            var base_url = $("#base_url").val();
-            document.getElementById('uprofile_content').innerHTML = '<div style="clear:both; padding-top:160px; height:160px;" align="center"><img src="' + domain + '/images/loading.gif"></div>';
-            xmlHttp = GetXmlHttpObject();
-            if (xmlHttp === null) {
-                alert("Browser does not support HTTP Request");
-                return;
-            }
-            var url = base_url + "ajaxfunctions.php" + "?page=load_profiletabs&pid=6&userid=" + uid;
-            xmlHttp.onreadystatechange = function() {
+            $("#uprofile_content").html('<div style="clear: both; padding-top: 160px; height: 160px;" align="center"><img src="' + domain + '/images/loading.gif"></div>');
+            $.get("/ajaxfunctions.php?page=load_profiletabs&pid=6&userid=" + uid, function(data, status, xmlHttp) {
+                unsafeWindow.xmlHttp = xmlHttp;
                 stateChanged_PFtab();
                 if (myuid == uid) {
-                    Array.from($(".use_item_col span")).forEach(function(item) {
-                        var t = item.innerHTML;
+                    $(".use_item_col span").each(function() {
+                        var t = $(this).html();
                         if (t.indexOf("http") > -1) {
-                            item.innerHTML = "<a target='_blank' href='" + t + "'>" + t + "</a>";
+                            $(this).html("<a target='_blank' href='" + t + "'>" + t + "</a>");
                         }
                     });
                     $("#uprofile_content").prepend('<button id="btnExpandAll" class="cssbutton" style="float: right; margin-top: 10px; margin-right: 10px;">Load all pages</button>');
@@ -999,31 +984,29 @@ function enhanceInventory() {
                     $("#uprofile_content").prepend('<button id="btnExportKeys" class="cssbutton" style="float: right; margin-top: 10px; margin-right: 10px;">Export steam keys</button>');
                     $("#btnExportKeys").click(exportAll);
                 }
-            };
-            xmlHttp.open("GET", url, true);
-            xmlHttp.send(null);
+            });
         });
     }
 }
 
+// LOAD ALL WISHLIST PAGES
 function expandAll() {
-    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
+    var max = parseInt($("[title=End]").text().split(" ")[0]);
     var uid = location.href.split("/")[4];
-    var rows = $(".tbl_last > tbody > tr");
-    Array.from(rows[rows.length - 1].childNodes).forEach(function(e) {
-        e.removeAttribute("style");
+    $(".tbl_last > tbody > tr").last().children().each(function() {
+        $(this).removeAttr("style");
     });
     for (var i = 1; i < max; i++) {
         var start = 10 * i;
         $.get("/achievements/ajax_show_useritems.php?userid=" + uid + "&limitstart=" + start, function(data) {
             var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
-            Array.from(rows[rows.length - 1].childNodes).forEach(function(e) {
-                e.removeAttribute("style");
+            $(rows).last().children().each(function() {
+                $(this).removeAttr("style");
             });
-            Array.from($(".use_item_col span", rows)).forEach(function(item) {
-                var t = item.innerHTML;
+            $(".use_item_col span", rows).each(function() {
+                var t = $(this).html();
                 if (t.indexOf("http") > -1) {
-                    item.innerHTML = "<a target='_blank' href='" + t + "'>" + t + "</a>";
+                    $(this).html("<a target='_blank' href='" + t + "'>" + t + "</a>");
                 }
             });
             $("#UserItems > table.tbl_last > tbody").append(rows);
@@ -1035,10 +1018,10 @@ function expandAll() {
 // CREATE EXPORTING DATA
 function exportAll() {
     var data = "";
-    Array.from($("#UserItems > table.tbl_last > tbody > tr")).forEach(function(item) {
-        if ($(item).text().match(/[A-NP-RTV-Z02-9]{5}(-[A-NP-RTV-Z02-9]{5}){2}/)) {
-            var name = $(".txt a", item).text();
-            var value = $(".use_item_col span", item).text();
+    $("#UserItems > table.tbl_last > tbody > tr").each(function() {
+        if ($(this).text().match(/[A-NP-RTV-Z02-9]{5}(-[A-NP-RTV-Z02-9]{5}){2}/)) {
+            var name = $(this).find(".txt a").text();
+            var value = $(this).find(".use_item_col span").text();
             data += name + "\r\n" + value + "\r\n\r\n";
         }
     });
@@ -1070,23 +1053,20 @@ function enhanceWishlist() {
         var uid = location.href.split("/")[4];
         for (i = 1; i <= 9; i++) {
             if (i == 9) {
-                document.getElementById('prf_tab' + i).className = "actv";
+                $("prf_tab" + i).addClass("actv");
             } else {
-                document.getElementById('prf_tab' + i).className = "";
+                $("prf_tab" + i).removeClass("actv");
             }
         }
-        var base_url = $("#base_url").val();
-        document.getElementById('uprofile_content').innerHTML = '<div style="clear:both; padding-top:160px; height:160px;" align="center"><img src="/images/loading.gif"></div>';
-        xmlHttp = GetXmlHttpObject();
-        if (xmlHttp === null) {
-            alert("Browser does not support HTTP Request");
-            return;
-        }
-        var url = base_url + "ajaxfunctions.php" + "?page=load_profiletabs&pid=9&userid=" + uid;
-        xmlHttp.onreadystatechange = function() {
+        $("uprofile_content").html("<div style='clear: both; padding-top: 160px; height: 160px;' align='center'><img src='/images/loading.gif'></div>");
+        $.get("/ajaxfunctions.php?page=load_profiletabs&pid=9&userid=" + uid, function(data, status, xmlHttp) {
+            console.log(1);
+            unsafeWindow.xmlHttp = xmlHttp;
             stateChanged_PFtab();
-            if (document.getElementById("btnRemoveOwned") === null && myuid == uid) {
+            if ($("#btnRemoveOwned").length === 0 && myuid == uid) {
+                console.log(2);
                 if (myuid == uid) {
+                    console.log(3);
                     $("#uprofile_content").prepend("<button id='btnHideOutOfStock' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Hide out of stock</button><br>");
                     $("#btnHideOutOfStock").click(hideOutOfStock);
                     $("#uprofile_content").prepend("<button id='btnRemoveOwned' class='cssbutton' style='float: right; margin-top: 10px; margin-right: 10px;'>Remove redeemed</button>");
@@ -1096,61 +1076,51 @@ function enhanceWishlist() {
                         $("#btnRemovedSteam").click(removeSteam);
                     }
                 }
-                if (document.getElementsByClassName("tbl_last sortable")[0] === undefined) {
-                    $("#uprofile_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top:160px; height:160px;" align="center"><img src="/images/loading.gif"></div>');
+                if ($(".tbl_last.sortable").length === 0) {
+                    console.log(4);
+                    $("#uprofile_content").prepend('<div id="loading" style="visibility: visible; clear:both; padding-top: 160px; height: 160px;" align="center"><img src="/images/loading.gif"></div>');
                     $("#uprofile_content").css("visibility", "hidden");
-                    var max = parseInt(document.querySelector('[title="End"]').getAttribute('onclick').split("'")[3]) / 10 + 1;
-                    var rows = $(".tbl_last > tbody > tr");
-                    Array.from(rows[rows.length - 1].childNodes).forEach(function(e) {
-                        e.removeAttribute("style");
+                    var max = parseInt($("[title=End]").text().split(" ")[0]);
+                    $(".tbl_last > tbody > tr").last().children().each(function() {
+                        $(this).removeAttr("style");
                     });
-
                     for (var i = 1; i < max; i++) {
-                        (function(i, max) {
-                            $.get("/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + (10 * i), function(data) {
-                                var rows = $('<div/>').html(data).find(".tbl_last > tbody > tr");
-                                Array.from(rows[rows.length - 1].childNodes).forEach(function(e) {
-                                    e.removeAttribute("style");
-                                });
-                                $("#UserWishlistItems > table.tbl_last > tbody").append(rows);
-                                if (i == max - 1) {
-                                    setTimeout(function() {
-                                        $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js", function() {
-                                            $("#uprofile_content").css("visibility", "visible");
-                                            $("#loading").remove();
-                                        });
-                                    }, 500);
-                                }
+                        let nth = i;
+                        $.get("/achievements/ajax_show_wishlistitems.php?userid=" + uid + "&limitstart=" + (10 * nth), function(data) {
+                            var rows = $("<div />").html(data).find("table.tbl_last tr");
+                            $(rows).last().children().each(function() {
+                                $(this).removeAttr("style");
                             });
-                        })(i, max);
+                            $("#UserWishlistItems > table.tbl_last > tbody").append(rows);
+                            if (nth == max - 1) {
+                                setTimeout(function() {
+                                    $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js", function() {
+                                        $("#uprofile_content").css("visibility", "visible");
+                                        $("#loading").remove();
+                                    });
+                                }, 500);
+                            }
+                        });
                     }
                     $("div.ach_paging_ajax").remove();
                     $("table.head").remove();
-                    $("table.tbl_last > tbody").prepend("<tr><td class='wdth1' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='wdth2' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='wdth3' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td><td class='seb'></td><td class='use_item_col' style='background-color: #3d94f6; text-align: center; cursor: pointer;'></td></tr>");
+                    $("table.tbl_last > tbody").prepend("<tr><td class='wdth1'></td><td class='seb'></td><td class='wdth2' style='cursor: pointer;'>Title</td><td class='seb'></td><td class='wdth3' style='cursor: pointer;'>Stock</td><td class='seb'></td><td class='use_item_col'></td></tr>");
+                    $("table.tbl_last tr:first > td:not(.seb)").css("background-color", "#3d94f6").css("text-align", "center").css("font-weight", "bold").css("color", "black");
                     $("table.tbl_last").addClass("sortable");
                 }
             }
-        };
-        xmlHttp.open("GET", url, true);
-        xmlHttp.send(null);
+        });
     });
 }
 
 // HIDE WISHLIST ITEMS THAT ARE OUR OF STOCK
 function hideOutOfStock() {
-    var stock = $("#UserWishlistItems tbody td.wdth3");
     var html = $("#btnHideOutOfStock").html();
-    if (stock.length > 0) {
-        for (var i = 0; i < stock.length; i++) {
-            if (parseInt(stock[i].innerHTML) <= 0) {
-                if (html.indexOf("Hide") > -1) {
-                    $(stock[i].parentNode).hide();
-                } else {
-                    $(stock[i].parentNode).show();
-                }
-            }
+    $("#UserWishlistItems tbody td.wdth3").each(function() {
+        if (parseInt($(this).text()) <= 0) {
+            $(this).parent().toggle();
         }
-    }
+    });
     if (html.indexOf("Hide") > -1) {
         $("#btnHideOutOfStock").html(html.replace("Hide", "Show"));
     } else {
@@ -1200,23 +1170,20 @@ function removeSteam() {
 
 // ALLOW JOINING MULTIPLE GIVEAWAYS AT ONCE
 function addGiveawaysJoinButton() {
-    var buttons = document.getElementsByClassName("cssbutton");
+    var buttons = $(".cssbutton");
     if (buttons.length > 0) {
         var sum = 0;
-        var items = document.querySelectorAll(".box_round+ div b");
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].parentNode.querySelector(".cssbutton") !== null) sum += parseInt(items[i].innerHTML.match(/\d+/)[0]);
-        }
-        $('form[name=myform]').after('<br><button class="cssbutton" style="width:240px;" value="giveaway" id="giveaway">Enter all ' + buttons.length + ' giveaways<br>(costs ' + sum + ' tremor coins)</button>');
+        $(".box_round+ div b").each(function() {
+            if ($(this).parent().find(".cssbutton").length > 0) sum += parseInt($(this).text().match(/\d+/)[0]);
+        });
+        $('form[name=myform]').after('<br><button class="cssbutton" style="width: 240px;" value="giveaway" id="giveaway">Enter all ' + buttons.length + ' giveaways<br>(costs ' + sum + ' tremor coins)</button>');
         $("#giveaway").click(function() {
+            var ajaxCount = buttons.length - 1;
             for (var i = 0; i < buttons.length; i++) {
-                (function(i) {
-                    $.get(buttons[i].href, function() {
-                        if (i == buttons.length - 1) setTimeout(function() {
-                            location.reload();
-                        }, 500);
-                    });
-                })(i);
+                $.get(buttons[i].href, function() {
+                    ajaxCount--;
+                    if (ajaxCount === 0) location.reload();
+                });
             }
         });
     }
@@ -1226,13 +1193,9 @@ function addGiveawaysJoinButton() {
 function joinAllGiveaways() {
     if (readCookie("tguserid") == "723169" && bGiveaways) {
         $.get("/?action=viewgiveaways", function(data) {
-            var buttons = $(".cssbutton", data);
-            for (var i = 0; i < buttons.length; i++) {
-                (function(i) {
-                    $.get(buttons[i].getAttribute("href"));
-                })(i);
-            }
-            console.log("Joining " + buttons.length + " giveaways");
+            $(".cssbutton", data).each(function() {
+                $.get($(this).attr("href"));
+            });
         });
     }
 }
@@ -1242,11 +1205,11 @@ function addUnsubscribe() {
     var listval = GM_getValue("blocklist");
     var blocklist = [];
     if (listval) {
-        blocklist = blocklist.concat(JSON.parse(listval));
+        blocklist = blocklist.concat($.parseJSON(listval));
     }
     unsafeWindow.blocklist = blocklist;
     var hereTd = document.getElementsByTagName("table");
-    var hereHref = hereTd[5].getElementsByTagName('a');
+    var hereHref = hereTd[5].getElementsByTagName("a");
     for (var J = hereHref.length - 1; J >= 0; --J) {
         if (blocklist.indexOf(hereHref[J].text) >= 0) {
             $("tr:contains('" + hereHref[J].text + "')").remove();
@@ -1275,7 +1238,7 @@ function addLastPage() {
 
 // PUT LAST POST INTO USER VIEW
 function scrollToLastPost() {
-    var ids = $('.forumpost');
+    var ids = $(".forumpost");
     location.hash = ids[ids.length - 1].id;
 }
 
@@ -1283,12 +1246,8 @@ function scrollToLastPost() {
 function addReportToTopic() {
     $("a:contains('Permalink')").each(function() {
         var postid = $(this).attr("href").split("postid=")[1].split("&")[0];
-        $(this).after('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
+        $(this).after('<a style="margin-left: 15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
     });
-    /*Array.from(document.querySelectorAll("tr+ tr div")).forEach(function(item) {
-        var postid = item.querySelector("a:nth-child(3)").getAttribute("href").split("postid=")[1];
-        $(item).append('<a style="margin-left:15px;" href="javascript:reportPost(' + postid + ')">Report</a>');
-    });*/
     $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table').addClass("sortable");
     $.getScript("http://www.kryogenix.org/code/browser/sorttable/sorttable.js");
     $('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead').css("cursor", " pointer");
@@ -1299,16 +1258,11 @@ function addReportToTopic() {
         var username_link = $("#postid" + postid).parent().parent().find("td:nth-child(1) > div:nth-child(2) > div:nth-child(2) > a:nth-child(1)").attr("href");
         var date = $("#postid" + postid).parent().parent().find("td:nth-child(1) > div:nth-child(1)").text();
         var postid_link = "/?action=viewpost&postid=" + postid;
-        var baseurl = document.getElementById("base_url").value;
-        var myurl = baseurl + "ajax_addforum_post.php?topicid=76178";
         var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + "\n**POST**: [PostID " + postid + "](" + postid_link + ")";
-        $.ajaxSetup({
-            cache: false
-        });
-        $.post(myurl, {
+        $.post("/ajax_addforum_post.php?topicid=76178", {
             message: commenttext
         }, function(data) {
-            var obj = jQuery.parseJSON(data);
+            var obj = $.parseJSON(data);
             if (obj.status == 1) {
                 alert("Successfully reported this post!");
             } else {
@@ -1320,31 +1274,26 @@ function addReportToTopic() {
 
 // ADD REPORT FUNCTION TO CHAT
 function addReportToChat() {
-    var i = 0;
-    Array.from($("#main_chat > div")).forEach(function(item) {
-        $(item).append('<a id="report' + i + '" style="border:0px solid black; float:right;width:50px;color:grey;" href="javascript:reportChat($(\'#report' + i + '\').parent())">Report</a>');
-        i++;
+    $("#main_chat > div").each(function() {
+        var username = $("div:nth-child(2) > a", this).text();
+        var username_link = $("div:nth-child(2) > a", this).attr("href");
+        var chat_log = $("div:nth-child(2)", this).text().split(": ")[1];
+        var time = $("div:nth-child(3)", this).text();
+        $(this).append('<a style="border: 0px solid black; float: right; width: 50px; color: grey;" href="javascript:reportChat(\'' + username + '\', \'' + username_link + '\', \'' + chat_log + '\', \'' + time + '\')">Report</a>');
     });
     unsafeWindow.reportChat = reportChat;
 }
 
 // REPORT CHAT MESSAGE
-function reportChat(chat) {
+function reportChat(username, username_link, chat_log, time) {
     var offense = prompt("Offense (please provide screenshots):");
     if (offense === null) return;
-    var username = $("div:nth-child(2) > a", chat).text();
-    var username_link = $("div:nth-child(2) > a", chat).attr("href");
-    var chat_log = $("div:nth-child(2)", chat).text().split(": ")[1];
-    var date = getToday() + " " + $("div:nth-child(3)", chat).text();
-    var myurl = "/ajax_addforum_post.php?topicid=76178";
+    var date = getToday() + " " + time;
     var commenttext = "**NAME**: [" + username + "](" + username_link + ")\n**DATE**: " + date + "\n**OFFENSE**: " + offense + " @ [Chat](http://www.tremorgames.com/?action=chat)\n\n> Original Chat Log from " + username + "\n\n> " + chat_log;
-    $.ajaxSetup({
-        cache: false
-    });
-    $.post(myurl, {
+    $.post("/ajax_addforum_post.php?topicid=76178", {
         message: commenttext
     }, function(data) {
-        var obj = jQuery.parseJSON(data);
+        var obj = $.parseJSON(data);
         if (obj.status == 1) {
             alert("Successfully reported this chat message!");
         } else {
@@ -1356,7 +1305,8 @@ function reportChat(chat) {
 // ADD TRADING CARDS LIST TO TREMOR REWARDS SHOP
 function addTradingCardsList() {
     $(".main_section_box").html($(".main_section_box").html().replace("Invalid Browse Mode", ""));
-    $(".main_section_box").append('<div class="forumpost display_emo"><div style="margin-left: 7px;">Source: From <u><a href="/?action=viewtopic&topicid=68018">Games on Tremor Games with Cards: The complete list</a></u>, by <u><a href="http://www.tremorgames.com/profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
+    $(".main_section_box").append('<div class="forumpost display_emo"><div style="margin-left: 7px;">Source: From <u><a href="/?action=viewtopic&topicid=68018">Games on Tremor Games with Cards: The complete list</a></u>' +
+                                  ', by <u><a href="http://www.tremorgames.com/profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
     $("#frm_shop_srch > div > div").remove();
     $.get("/?action=viewtopic&topicid=68018", function(data) {
         $("#tc_contents").append($('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead', data).first());
@@ -1374,40 +1324,50 @@ function addTradingCardsList() {
 // ADD ENHANCED TEXT EDITOR TO TOPIC
 function enhanceTextEditor() {
     commentArea = $("#newcomment")[0];
-    $(commentArea).before('<center><img src="' + btnBold + '" id="boldIco"></img><img src="' + btnItalic + '" id="itaIco"></img><img src="' + btnHeader_2 + '" id="h1Ico"></img><img src="' + btnHeader_3 + '" id="h2Ico"></img><img src="' + btnCode + '" id="codeIco"><img src="' + btnList + '" id="listIco"><img src="' + btnHr + '" id="hrIco"></img><img src="' + btnLink + '" id="linkIco"></img><img src="' + btnImage + '" id="imgIco"></img><img src="' + btnTable + '" id="tableIco"></img></center>');
-    document.getElementById("boldIco").addEventListener("click", function() {
+    $(commentArea).before('<center><img src="' + btnBold +
+                          '" id="boldIco"></img><img src="' + btnItalic +
+                          '" id="itaIco"></img><img src="' + btnHeader_2 +
+                          '" id="h1Ico"></img><img src="' + btnHeader_3 +
+                          '" id="h2Ico"></img><img src="' + btnCode +
+                          '" id="codeIco"><img src="' + btnList +
+                          '" id="listIco"><img src="' + btnHr +
+                          '" id="hrIco"></img><img src="' + btnLink +
+                          '" id="linkIco"></img><img src="' + btnImage +
+                          '" id="imgIco"></img><img src="' + btnTable +
+                          '" id="tableIco"></img></center>');
+    $("#boldIco").click(function() {
         addTag("**", "**");
     });
-    document.getElementById("itaIco").addEventListener("click", function() {
+    $("#itaIco").click(function() {
         addTag("*", "*");
     });
-    document.getElementById("h1Ico").addEventListener("click", function() {
+    $("#h1Ico").click(function() {
         addTag("#", "");
     });
-    document.getElementById("h2Ico").addEventListener("click", function() {
+    $("#h2Ico").click(function() {
         addTag("####", "");
     });
-    document.getElementById("listIco").addEventListener("click", function() {
+    $("#listIco").click(function() {
         addTag("* ", "");
     });
-    document.getElementById("codeIco").addEventListener("click", function() {
+    $("#codeIco").click(function() {
         addTag("`", "`");
     });
-    document.getElementById("hrIco").addEventListener("click", function() {
+    $("#hrIco").click(function() {
         var sel_txt = commentArea.value.substring(commentArea.selectionStart, commentArea.selectionEnd);
         if (sel_txt === "")
             commentArea.value = commentArea.value.substring(0, commentArea.selectionStart) + "___" + commentArea.value.substring(commentArea.selectionEnd, commentArea.value.length);
         commentArea.focus();
     });
-    document.getElementById("linkIco").addEventListener("click", function() {
+    $("#linkIco").click(function() {
         generateCode(false);
     });
 
-    document.getElementById("imgIco").addEventListener("click", function() {
+    $("#imgIco").click(function() {
         generateCode(true);
     });
 
-    document.getElementById("tableIco").addEventListener("click", function() {
+    $("#tableIco").click(function() {
         if ($('#tableeditor').length > 0) {
             alert("Cancel the current table first");
             return;
@@ -1464,17 +1424,17 @@ function generateTableEditor(cols, rows) {
         var tr = $('<tr>');
         for (var c = 0; c < cols; c++)
             if (r === 0)
-                $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color:lightgreen " contenteditable></span></td>').appendTo(tr);
+                $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden; background-color: lightgreen;" contenteditable></span></td>').appendTo(tr);
             else
                 $('<td><span class="commentTable" style="width: 100px; height: 20px; display: inline-block; border: 1px solid black; overflow: hidden;" contenteditable></span></td>').appendTo(tr);
         tr.appendTo(tableEditor);
     }
     $(commentArea).after(tableEditor);
-    $(tableEditor).after('<br> <center> <p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br><p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p> </center></center>');
-    document.getElementById("createtable").addEventListener("click", function() {
+    $(tableEditor).after('<br><center><p id="createtable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Add Table</p><br><p id="canceltable" style="cursor: pointer; width: 100px; color: red; text-decoration: underline;">Cancel</p></center></center>');
+    $("#createtable").click(function() {
         CreateTable(cols, rows);
     });
-    document.getElementById("canceltable").addEventListener("click", function() {
+    $("#canceltable").click(function() {
         $(tableEditor).remove();
         $(createtable).remove();
         $(canceltable).remove();
@@ -1482,6 +1442,7 @@ function generateTableEditor(cols, rows) {
     });
 }
 
+// CREATE A TABLE IN THE RIGHT FORMATTING
 function CreateTable(cols, rows) {
     var codeTable = "";
     var tableEditor = document.getElementsByClassName('commentTable');
@@ -1489,7 +1450,6 @@ function CreateTable(cols, rows) {
     for (var i = 0; i < rows; i++) {
         codeTable += '\n';
         if (i == 1) {
-
             var headerLine = "";
             for (var k = 0; k < cols; k++) {
                 headerLine += "------------- |";
@@ -1515,7 +1475,7 @@ function addMultiQuote() {
     });
     unsafeWindow.MultiQuotePost = function(id) {
         $.get("/json_get_post_for_edit.php?postid=" + id, function(data) {
-            var obj = JSON.parse(data);
+            var obj = $.parseJSON(data);
             if (obj.Status == 1) {
                 msgarray = obj.Message.split("\n");
                 for (i = 0; i < msgarray.length; i++) {
@@ -1532,7 +1492,7 @@ function addMultiQuote() {
                 quote = quote + "\n\n" + obj.Message;
                 quote = quote + "\n\n";
                 document.getElementById("newcomment").value += quote + "#####\n";
-                if ($('#floatingQuotes').length === 0) {
+                if ($("#floatingQuotes").length === 0) {
                     $("body").prepend("<div id='floatingQuotes' style='z-index: 100000; position: fixed; right: 0px; top: 0px; padding-right: 10px; padding-left: 10px; background: white; border: 1px solid rgb(221, 221, 221);'><h4>QUOTING<br>" + obj.username + "<br></h4></div>");
                     setTimeout(function() {
                         $("#floatingQuotes").remove();
