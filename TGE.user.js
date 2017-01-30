@@ -33,7 +33,7 @@
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
-// @version     1.4.17
+// @version     1.4.18
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -848,6 +848,7 @@ function enhanceShopItem() {
 
 // ADD MORE CATEGORIES AND FILTER OPTIONS TO TREMOR REWARDS SHOP
 function enhanceShop() {
+    $(".main_section_box div:contains('No Items Found')").html("*** No Items Found In Tremor Rewards ***<br>*** Is the game you're looking for on Steam? Then try <u><a href='/?action=custom_game'>custom order</a></u>! ***");
     $(".shop_catbg_middle_right").append(" | ").append('<a href="/index.php?action=shopbrowse&mode=tradingcards" style="font-weight: bold; color: #FFF89B;">Games With Trading Cards</a>');
     /*if (GM_getValue("o_checked") == "false" && location.href == "/?action=shop") {
         location.href = "/?action=shop&searchterm=+";
