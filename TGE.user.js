@@ -33,7 +33,7 @@
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
-// @version     1.4.18
+// @version     1.4.19
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -200,6 +200,8 @@ function initTGE() {
         enhanceTextEditor();
     if (URLContains("action=shopbrowse&mode=tradingcards"))
         addTradingCardsList();
+    if (URLContains("action=points"))
+        showStats();
 }
 
 // RETURN IF URL CONTAINS STRING
@@ -224,6 +226,17 @@ function getToday() {
     var day = date.getDate().toString();
     day = day.length > 1 ? day : '0' + day;
     return day + '-' + month + '-' + year;
+}
+
+// RETURN THE TIME STRING OF NOW
+function getTime() {
+    var date = new Date();
+    var seconds = date.getSeconds().toString();
+    var minutes = date.getMinutes().toString();
+    var hour = date.getHours().toString();
+    return (hour.length > 1 ? hour : "0" + hour) + ":" +
+        (minutes.length > 1 ? minutes : "0" + minutes) + ":" +
+        (seconds.length > 1 ? seconds : "0" + seconds);
 }
 
 // ADD CONFIGURATION SETTINGS
@@ -1505,4 +1518,184 @@ function addMultiQuote() {
 
         });
     };
+}
+
+// SHOW STATS
+function showStats() {
+    if (location.href.indexOf("action=points" > -1) && $(".main_section_headers").length > 0) {
+        var statshtml = '<div id="stats"><div class="main_section_headers"><center>Statistics</center></div><div class="main_section_content">';
+        statshtml += '<div style="text-align: center;"><div class="pagination1"><span>Last updated: ' + getStatsLastUpdated() + '</span><a id="updateStatsBtn" href="#">Update</a><a id="resetStatsBtn" href="#">Reset</a></div></div>';
+        statshtml += '<table class="grid" width="100%"><thead><tr><td width="150">Statistic</td><td>Date</td><td>Description</td><td>Points</td><td>Coins</td><td>Balance</td></tr></thead><tbody>';
+        statshtml += buildStatsRow("Sums of all points, coins and balances", getSums());
+        statshtml += buildStatsRow("Averages of all points, coins and balances", getAverages());
+        statshtml += buildStatsRow("Max balance ever", getBalanceMax());
+        statshtml += buildStatsRow("Max coins gained at once", getCoinsMax());
+        statshtml += buildStatsRow("Max coins gained at once (excl refunds)", getCoinsMaxNoRefund());
+        statshtml += buildStatsRow("Min coins lost at once", getCoinsMin());
+        statshtml += buildStatsRow("Min coins lost at once (excl purchase)", getCoinsMinNoPurchase());
+        statshtml +='</tbody></table></div></div><hr>';
+        $("#stats").remove();
+        $(".main_section_headers").before(statshtml);
+        $("#updateStatsBtn").click(updateStats);
+        $("#resetStatsBtn").click(resetStats);
+    }
+}
+
+// REMOVE STATS ON EARNINGS
+function resetStats() {
+    if (confirm("Are you sure you want to reset all statistical data on your earnings?")) {
+        localStorage.removeItem("statsjson");
+        location.reload();
+    }
+}
+
+// UPDATE STATS ON EARNINGS
+function updateStats() {
+    if (location.href.indexOf("action=points" > -1) && $("#updateStatsBtn").length > 0) {
+        $("#updateStatsBtn").text("Updating...");
+        var uid;
+        var json = localStorage.getItem("statsjson") ? JSON.parse(localStorage.getItem("statsjson")) : new Object();
+        var lastpage = $("span:contains(' Pages of ')").text().split(" ").pop();
+        var pageschecked = 0;
+        if (json["pageschecked"]) {
+            pageschecked = json["pageschecked"];
+        } else {
+            json["pageschecked"] = pageschecked;
+        }
+        if (json["uid"]) {
+            uid = json["uid"];
+        } else {
+            uid = $(".wbox_topleft a").attr("href").split("/")[4];
+            json["uid"] = uid;
+        }
+        if (!json["data"]) {
+            json["data"] = new Array();
+        }
+        for (var page = 1; page <= lastpage - pageschecked; page++) {
+            $.get("/?action=points&userid=" + uid + "&page=" + page, function(data) {
+                data = data.replace(/<img\b[^>]*>/ig, "");
+                $(".grid tbody tr", data).each(function() {
+                    const description = $(this).find("td:nth-child(2)").text();
+                    const points = parseInt($(this).find("td:nth-child(3)").text());
+                    const coins = parseInt($(this).find("td:nth-child(4)").text());
+                    const balance = parseInt($(this).find("td:nth-child(5)").text());
+                    const datetime = $(this).find("td:nth-child(1)").text();
+                    const date = datetime.split(" ").slice(0, -2).join(" ");
+                    const time = datetime.split(" ").slice(-2).join(" ");
+                    var item = new Object();
+                    item["date"] = date;
+                    item["time"] = time;
+                    item["description"] = description;
+                    item["points"] = points;
+                    item["coins"] = coins;
+                    item["balance"] = balance;
+                    json["data"].push(item);
+                });
+                json["lastupdated"] = getToday() + " " + getTime();
+                localStorage.setItem("statsjson", JSON.stringify(json));
+            }).always(function() {
+                json["pageschecked"] += 1;
+                if (json["pageschecked"] == lastpage) {
+                    setTimeout(function() {
+                        console.log(json);
+                        showStats();
+                    }, 2000);
+                }
+            });
+        }
+    }
+}
+
+// GET WHEN STATS WERE LAST UPDATED
+function getStatsLastUpdated() {
+    return localStorage.getItem("statsjson") && JSON.parse(localStorage.getItem("statsjson")).lastupdated ? JSON.parse(localStorage.getItem("statsjson")).lastupdated : "Never";
+}
+
+// BUILD ROW FROM OBJECT FOR STATISTICS TABLE
+function buildStatsRow(stat, obj) {
+    console.log(stat, obj);
+    return '<tr><td width="150">' + (stat ? stat : "") +
+        '</td><td><small>' + (obj && obj.date ? obj.date : "") + " " + (obj && obj.time ? obj.time : "") +
+        '</small></td><td>' + (obj && obj.description ? obj.description : "") +
+        '</td><td>' + (obj && obj.points.toString() ? obj.points.toString() : "") +
+        '</td><td>' + (obj && obj.coins.toString() ? obj.coins.toString() : "") +
+        '</td><td>' + (obj && obj.balance.toString() ? obj.balance.toString() : "") +
+        '</td></tr>';
+}
+
+// GET BALANCE EVER
+function getBalanceMax() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var max = Math.max.apply(Math, json.data.map(function(o) { return o.balance; }));
+    return json.data.filter(function(o) { return o.balance == max; })[0];
+}
+
+// GET MAX COINS EARNING
+function getCoinsMax() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var max = Math.max.apply(Math, json.data.map(function(o) { return o.coins; }));
+    return json.data.filter(function(o) { return o.coins == max; })[0];
+}
+
+// GET MAX COINS EARNING (NO REFUND)
+function getCoinsMaxNoRefund() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var max = Math.max.apply(Math, json.data.map(function(o) { return o.description.indexOf("Refund") == -1 ? o.coins: 0; }));
+    return json.data.filter(function(o) { return o.coins == max; })[0];
+}
+
+// GET MIN COINS EARNING
+function getCoinsMin() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var min = Math.min.apply(Math, json.data.map(function(o) { return o.coins; }));
+    return json.data.filter(function(o) { return o.coins == min; })[0];
+}
+
+// GET MIN COINS EARNING (NO PURCHASE)
+function getCoinsMinNoPurchase() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var min = Math.min.apply(Math, json.data.map(function(o) { return o.description.indexOf("Bought Item") == -1 ? o.coins: 0; }));
+    return json.data.filter(function(o) { return o.coins == min; })[0];
+}
+
+// GET AVERAGES
+function getAverages() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var pointsavg = parseInt(json.data.map(function(o) { return o.points; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
+    var coinsavg = parseInt(json.data.map(function(o) { return o.coins; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
+    var balavg = parseInt(json.data.map(function(o) { return o.balance; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
+    return { points: pointsavg, coins: coinsavg, balance: balavg };
+}
+
+// GET SUMS
+function getSums() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    if (!json) return null;
+    var pointssum = json.data.map(function(o) { return o.points; }).reduce(function(a, b) { return a + b; });
+    var coinssum = json.data.map(function(o) { return o.coins; }).reduce(function(a, b) { return a + b; });
+    var balsum = json.data.map(function(o) { return o.balance; }).reduce(function(a, b) { return a + b; });
+    return { points: pointssum, coins: coinssum, balance: balsum };
+}
+
+// GET DAILY REFERRAL EARNINGS
+function getDailyReferral() {
+    var json = JSON.parse(localStorage.getItem("statsjson"));
+    var groups = new Object();
+    json.data.forEach(function(item) {
+        var date = new Date(item.date);
+        var key = date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
+        //console.log(item.date + " ==> " + date + " ==> " + key);
+        if (groups[key] && item.description == "Earnings from Referral") {
+            groups[key] += item.coins;
+        } else if (item.description == "Earnings from Referral") {
+            groups[key] = item.coins;
+        }
+    });
+    return groups;
 }
