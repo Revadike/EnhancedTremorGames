@@ -98,9 +98,7 @@ var bGiveaways,
     domain;
 
 // WAIT FOR DOCUMENT TO LOAD
-$(document).ready(function() {
-    initTGE();
-});
+$(document).ready(initTGE);
 
 // INITIATE TREMOR GAMES ENHANCED
 function initTGE() {
@@ -152,7 +150,14 @@ function initTGE() {
     cfWishlist = GM_getResourceURL("cfWishlist");
     ajaxLoaderGif = GM_getResourceURL("ajaxLoaderGif");
     tgeIcon = GM_getResourceURL("tgeIcon");
-    chatSizes = [[150, 520], [240, 520], [260, 520], [300, 520], [360, 520], [480, 520]];
+    chatSizes = [
+        [150, 520],
+        [240, 520],
+        [260, 520],
+        [300, 520],
+        [360, 520],
+        [480, 520]
+    ];
     isChrome = !!window.chrome;
     domain = "http://www.tremorgames.com/";
 
@@ -585,8 +590,29 @@ function customMenu() {
     var menu = $("div.header-right ul.nav.nav-pills");
     $(menu).find(">li:has(>a)").remove();
     $(menu).find("div[style='margin-top:3px;']").css("margin-left", "10px");
-    var community = buildDropdown([{ href: "/?action=forums", title: "Community" }, { href: "/?action=viewgiveaways", title: "Giveaways" }, { href: "/?action=forums", title: "Forums" }, { href: "/?action=chat", title: "Chat" }]);
-    var rewards = buildDropdown([{ href: "/?action=shop", title: "Tremor Rewards" }, { href: "/?action=shop", title: "Item Store" }, { href: "/?action=custom_game", title: "Custom Order" }]);
+    var community = buildDropdown([{
+        href: "/?action=forums",
+        title: "Community"
+    }, {
+        href: "/?action=viewgiveaways",
+        title: "Giveaways"
+    }, {
+        href: "/?action=forums",
+        title: "Forums"
+    }, {
+        href: "/?action=chat",
+        title: "Chat"
+    }]);
+    var rewards = buildDropdown([{
+        href: "/?action=shop",
+        title: "Tremor Rewards"
+    }, {
+        href: "/?action=shop",
+        title: "Item Store"
+    }, {
+        href: "/?action=custom_game",
+        title: "Custom Order"
+    }]);
     $(menu).prepend(community).prepend(rewards);
 }
 
@@ -657,7 +683,7 @@ function RefreshChat() {
                 $("#chatConfig").click(function() {
                     var c = prompt("Current chat size: " + GM_getValue("ChatSize", 4) + (GM_getValue("ChatSize", 4) == 4 ? " (default)" : "") + "\n\nChoose a size between 0-5:\n\n", "");
                     if (c !== null) {
-                        if (c < 0 || c > 5 || (c+1) / (c+1) != 1) {
+                        if (c < 0 || c > 5 || (c + 1) / (c + 1) != 1) {
                             alert("Invalid value");
                             return;
                         } else {
@@ -689,7 +715,7 @@ function addCustomOrderAutocomplete() {
     $(".main_section_content").prepend("<input style='width: 450px; float: left; background: none;' id='steamsearch' type='text'>");
     $(".main_section_content").prepend("<label><b>Search for a Steam Game below:</b></label><label style='float: right; margin-right: 120px; margin-top: 5px;'> ...or <u><a href='?action=custom_game&manual=true'>enter manually</a></u>.</label>");
     $("#steamsearch").after("<div style='margin-top: 30px; width: 480px; padding-left: 10px' class='easy-autocomplete-container'><ul style='display: block;' id='autocomplete'></ul></div><br><br><div id='result'></div>" +
-                            "<div class='item_purchase'><hr><label><b>Total: </b><span id='total'>0 Tremor Coins</span></label><a class='btn btn-success' style='width: 140px; color: white;' href='javascript:PurchaseAllItems()'>Redeem All</a></div>");
+        "<div class='item_purchase'><hr><label><b>Total: </b><span id='total'>0 Tremor Coins</span></label><a class='btn btn-success' style='width: 140px; color: white;' href='javascript:PurchaseAllItems()'>Redeem All</a></div>");
     $("#steamsearch").on("change paste keyup", function() {
         if ($(this).val().trim() === "") {
             $("#autocomplete").hide();
@@ -778,7 +804,7 @@ function addCustomOrderAutocomplete() {
                     var data = $(this).attr("href").split("(")[1].split(")")[0].replace(/\'/g, "").split(",");
                     var itemid = data[0];
                     var appid = data[1];
-                    var nonce =$("#nonce").html();
+                    var nonce = $("#nonce").html();
                     $.post("/achievements/ajax_buyitem.php", {
                         itemid: itemid,
                         nonce: nonce,
@@ -854,7 +880,7 @@ function enhanceShopItem() {
         else
             $('#steamcheck').html('<b style="font-size: 12px; color: green;">NOTICE: You do not own this item on steam!</b>');
         $(".btn.btn-success.btn-large").first().css("font-size", "22px").css("width", "25%").after('<form id="customorder" action="/?action=custom_game_submit" method="POST" style="display: inline;"><input style="visibility: hidden; width: 0px;" id="url" name="url" type="text">' +
-                                                                                                   '<button type="submit" class="btn btn-success btn-large" style="font-size: 22px; width: 58%;">Custom order</button></form>');
+            '<button type="submit" class="btn btn-success btn-large" style="font-size: 22px; width: 58%;">Custom order</button></form>');
         $("#url").val($("#productlink").attr("href"));
     }
 }
@@ -1320,7 +1346,7 @@ function reportChat(username, username_link, chat_log, time) {
 function addTradingCardsList() {
     $(".main_section_box").html($(".main_section_box").html().replace("Invalid Browse Mode", ""));
     $(".main_section_box").append('<div class="forumpost display_emo"><div style="margin-left: 7px;">Source: From <u><a href="/?action=viewtopic&topicid=68018">Games on Tremor Games with Cards: The complete list</a></u>' +
-                                  ', by <u><a href="http://www.tremorgames.com/profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
+        ', by <u><a href="http://www.tremorgames.com/profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
     $("#frm_shop_srch > div > div").remove();
     $.get("/?action=viewtopic&topicid=68018", function(data) {
         $("#tc_contents").append($('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead', data).first());
@@ -1339,16 +1365,16 @@ function addTradingCardsList() {
 function enhanceTextEditor() {
     commentArea = $("#newcomment")[0];
     $(commentArea).before('<center><img src="' + btnBold +
-                          '" id="boldIco"></img><img src="' + btnItalic +
-                          '" id="itaIco"></img><img src="' + btnHeader_2 +
-                          '" id="h1Ico"></img><img src="' + btnHeader_3 +
-                          '" id="h2Ico"></img><img src="' + btnCode +
-                          '" id="codeIco"><img src="' + btnList +
-                          '" id="listIco"><img src="' + btnHr +
-                          '" id="hrIco"></img><img src="' + btnLink +
-                          '" id="linkIco"></img><img src="' + btnImage +
-                          '" id="imgIco"></img><img src="' + btnTable +
-                          '" id="tableIco"></img></center>');
+        '" id="boldIco"></img><img src="' + btnItalic +
+        '" id="itaIco"></img><img src="' + btnHeader_2 +
+        '" id="h1Ico"></img><img src="' + btnHeader_3 +
+        '" id="h2Ico"></img><img src="' + btnCode +
+        '" id="codeIco"><img src="' + btnList +
+        '" id="listIco"><img src="' + btnHr +
+        '" id="hrIco"></img><img src="' + btnLink +
+        '" id="linkIco"></img><img src="' + btnImage +
+        '" id="imgIco"></img><img src="' + btnTable +
+        '" id="tableIco"></img></center>');
     $("#boldIco").click(function() {
         addTag("**", "**");
     });
@@ -1533,7 +1559,7 @@ function showStats() {
         statshtml += buildStatsRow("Max coins gained at once (excl refunds)", getCoinsMaxNoRefund());
         statshtml += buildStatsRow("Min coins lost at once", getCoinsMin());
         statshtml += buildStatsRow("Min coins lost at once (excl purchase)", getCoinsMinNoPurchase());
-        statshtml +='</tbody></table></div></div><hr>';
+        statshtml += '</tbody></table></div></div><hr>';
         $("#stats").remove();
         $(".main_section_headers").before(statshtml);
         $("#updateStatsBtn").click(updateStats);
@@ -1627,60 +1653,112 @@ function buildStatsRow(stat, obj) {
 function getBalanceMax() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var max = Math.max.apply(Math, json.data.map(function(o) { return o.balance; }));
-    return json.data.filter(function(o) { return o.balance == max; })[0];
+    var max = Math.max.apply(Math, json.data.map(function(o) {
+        return o.balance;
+    }));
+    return json.data.filter(function(o) {
+        return o.balance == max;
+    })[0];
 }
 
 // GET MAX COINS EARNING
 function getCoinsMax() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var max = Math.max.apply(Math, json.data.map(function(o) { return o.coins; }));
-    return json.data.filter(function(o) { return o.coins == max; })[0];
+    var max = Math.max.apply(Math, json.data.map(function(o) {
+        return o.coins;
+    }));
+    return json.data.filter(function(o) {
+        return o.coins == max;
+    })[0];
 }
 
 // GET MAX COINS EARNING (NO REFUND)
 function getCoinsMaxNoRefund() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var max = Math.max.apply(Math, json.data.map(function(o) { return o.description.indexOf("Refund") == -1 ? o.coins: 0; }));
-    return json.data.filter(function(o) { return o.coins == max; })[0];
+    var max = Math.max.apply(Math, json.data.map(function(o) {
+        return o.description.indexOf("Refund") == -1 ? o.coins : 0;
+    }));
+    return json.data.filter(function(o) {
+        return o.coins == max;
+    })[0];
 }
 
 // GET MIN COINS EARNING
 function getCoinsMin() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var min = Math.min.apply(Math, json.data.map(function(o) { return o.coins; }));
-    return json.data.filter(function(o) { return o.coins == min; })[0];
+    var min = Math.min.apply(Math, json.data.map(function(o) {
+        return o.coins;
+    }));
+    return json.data.filter(function(o) {
+        return o.coins == min;
+    })[0];
 }
 
 // GET MIN COINS EARNING (NO PURCHASE)
 function getCoinsMinNoPurchase() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var min = Math.min.apply(Math, json.data.map(function(o) { return o.description.indexOf("Bought Item") == -1 ? o.coins: 0; }));
-    return json.data.filter(function(o) { return o.coins == min; })[0];
+    var min = Math.min.apply(Math, json.data.map(function(o) {
+        return o.description.indexOf("Bought Item") == -1 ? o.coins : 0;
+    }));
+    return json.data.filter(function(o) {
+        return o.coins == min;
+    })[0];
 }
 
 // GET AVERAGES
 function getAverages() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var pointsavg = parseInt(json.data.map(function(o) { return o.points; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
-    var coinsavg = parseInt(json.data.map(function(o) { return o.coins; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
-    var balavg = parseInt(json.data.map(function(o) { return o.balance; }).reduce(function(p, c, i) { return p + (c - p) / (i + 1); }, 0));
-    return { points: pointsavg, coins: coinsavg, balance: balavg };
+    var pointsavg = parseInt(json.data.map(function(o) {
+        return o.points;
+    }).reduce(function(p, c, i) {
+        return p + (c - p) / (i + 1);
+    }, 0));
+    var coinsavg = parseInt(json.data.map(function(o) {
+        return o.coins;
+    }).reduce(function(p, c, i) {
+        return p + (c - p) / (i + 1);
+    }, 0));
+    var balavg = parseInt(json.data.map(function(o) {
+        return o.balance;
+    }).reduce(function(p, c, i) {
+        return p + (c - p) / (i + 1);
+    }, 0));
+    return {
+        points: pointsavg,
+        coins: coinsavg,
+        balance: balavg
+    };
 }
 
 // GET SUMS
 function getSums() {
     var json = JSON.parse(localStorage.getItem("statsjson"));
     if (!json) return null;
-    var pointssum = json.data.map(function(o) { return o.points; }).reduce(function(a, b) { return a + b; });
-    var coinssum = json.data.map(function(o) { return o.coins; }).reduce(function(a, b) { return a + b; });
-    var balsum = json.data.map(function(o) { return o.balance; }).reduce(function(a, b) { return a + b; });
-    return { points: pointssum, coins: coinssum, balance: balsum };
+    var pointssum = json.data.map(function(o) {
+        return o.points;
+    }).reduce(function(a, b) {
+        return a + b;
+    });
+    var coinssum = json.data.map(function(o) {
+        return o.coins;
+    }).reduce(function(a, b) {
+        return a + b;
+    });
+    var balsum = json.data.map(function(o) {
+        return o.balance;
+    }).reduce(function(a, b) {
+        return a + b;
+    });
+    return {
+        points: pointssum,
+        coins: coinssum,
+        balance: balsum
+    };
 }
 
 // GET DAILY REFERRAL EARNINGS
@@ -1689,7 +1767,7 @@ function getDailyReferral() {
     var groups = new Object();
     json.data.forEach(function(item) {
         var date = new Date(item.date);
-        var key = date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
+        var key = date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
         //console.log(item.date + " ==> " + date + " ==> " + key);
         if (groups[key] && item.description == "Earnings from Referral") {
             groups[key] += item.coins;
