@@ -12,5 +12,5 @@
 // @downloadURL https://github.com/Royalgamer06/EnhancedTremorGames/raw/master/ETG.user.js
 // ==/UserScript==
 
-alert("Please update your Enhanced Tremor Games userscript");
+alert("Please update your Enhanced Tremor Games userscript and remove the old userscript");
 location.href = "https://github.com/Royalgamer06/EnhancedTremorGames/raw/master/ETG.user.js";
