@@ -35,7 +35,7 @@
 // @connect     store.steampowered.com
 // @connect     steamcommunity.com
 // @connect     royalgamer06.ga
-// @version     1.5.0
+// @version     1.5.1
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
@@ -417,7 +417,7 @@ function activateToolTip() {
 }
 
 function disableSteamOption() { //disable steam button
-    $("#toggleSteam, #syncSteam").attr("disabled", "disabled").html('Disabled!');
+    $("#toggleSteam, #syncSteam").prop("disabled", true).html('Disabled!');
     GM_setValue("bSteam", false);
     bSteam = false;
 }
@@ -769,7 +769,7 @@ function addCustomOrderAutocomplete() {
     $(".main_section_content").prepend('<input style="width: 450px; float: left; background: none;" id="steamsearch" type="text">');
     $(".main_section_content").prepend('<label><b>Search for a Steam Game below:</b></label><label style="float: right; margin-right: 120px; margin-top: 5px;"> ...or <u><a href="?action=custom_game&manual=true">enter manually</a></u>.</label>');
     $("#steamsearch").after('<div style="margin-top: 30px; width: 480px; padding-left: 10px" class="easy-autocomplete-container"><ul style="display: block;" id="autocomplete"></ul></div><br><br><div id="result"></div>' +
-        '<div class="item_purchase"><hr><label><b>Total: </b><span id="total">0 Tremor Coins</span></label><a class="btn btn-success" style="width: 140px; color: white;" href="javascript:PurchaseAllItems()">Redeem All</a></div>');
+                            '<div class="item_purchase"><hr><label><b>Total: </b><span id="total">0 Tremor Coins</span></label><a class="btn btn-success" style="width: 140px; color: white;" href="javascript:PurchaseAllItems()">Redeem All</a></div>');
     $("#steamsearch").on("change paste keyup", function() {
         if ($(this).val().trim() === "") {
             $("#autocomplete").hide();
@@ -1373,13 +1373,17 @@ function removeOwned() {
 
 // IMPORT WISHLIST ITEMS FROM STEAM
 function importWishlist() {
-    $("#UserWishlistItems tr:has([href*='showitem&itemid='])").each(function() {
-        const itemid = $("[href*='showitem&itemid=']", this).attr("href").split("itemid=")[1];
-        if (dTremor.rewards.hasOwnProperty(itemid) && dSteam.rgWishlist.includes(dTremor.rewards[itemid].appid)) {
-            $.get("http://www.tremorgames.com/achievements/ajax_addtowishlist.php?itemid=" + itemid);
-        }
+    $("#btnImportWishlist").text("Importing...").prop("disabled", true);
+    const wlObjs = Object.values(dTremor.rewards).filter(o => dSteam.rgWishlist.includes(o.appid));
+    var ajaxDone = 0;
+    wlObjs.forEach(o => {
+        $.get("/achievements/ajax_addtowishlist.php?itemid=" + o.itemid, function() {
+            ajaxDone++;
+            if (ajaxDone === wlObjs.length) {
+                $("#btnImportWishlist").text("Done!");
+            }
+        });
     });
-    $("#btnImportWishlist").text("Done!").prop("disabled", true);
 }
 
 // ALLOW JOINING MULTIPLE GIVEAWAYS AT ONCE
@@ -1516,7 +1520,7 @@ function reportChat(username, username_link, chat_log, time) {
 function addTradingCardsList() {
     $(".main_section_box").html($(".main_section_box").html().replace("Invalid Browse Mode", ""));
     $(".main_section_box").append('<div class="forumpost display_emo"><div style="margin-left: 7px;">Source: From <u><a href="/?action=viewtopic&topicid=68018">Games on Tremor Games with Cards: The complete list</a></u>' +
-        ', by <u><a href="' + domain + 'profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
+                                  ', by <u><a href="' + domain + 'profiles/105570/snipah.html">snipah</a></u>.</div><table style="margin-left: 7px;" id="tc_contents"></table></div>');
     $("#frm_shop_srch > div > div").remove();
     $.get("/?action=viewtopic&topicid=68018", function(data) {
         $("#tc_contents").append($('div[style="border:2px solid #F7F7F7;margin-top:10px;"] table table thead', data).first());
@@ -1535,16 +1539,16 @@ function addTradingCardsList() {
 function enhanceTextEditor() {
     commentArea = $("#newcomment")[0];
     $(commentArea).before('<center><img src="' + btnBold +
-        '" id="boldIco"></img><img src="' + btnItalic +
-        '" id="itaIco"></img><img src="' + btnHeader2 +
-        '" id="h1Ico"></img><img src="' + btnHeader3 +
-        '" id="h2Ico"></img><img src="' + btnCode +
-        '" id="codeIco"><img src="' + btnList +
-        '" id="listIco"><img src="' + btnHr +
-        '" id="hrIco"></img><img src="' + btnLink +
-        '" id="linkIco"></img><img src="' + btnImage +
-        '" id="imgIco"></img><img src="' + btnTable +
-        '" id="tableIco"></img></center>');
+                          '" id="boldIco"></img><img src="' + btnItalic +
+                          '" id="itaIco"></img><img src="' + btnHeader2 +
+                          '" id="h1Ico"></img><img src="' + btnHeader3 +
+                          '" id="h2Ico"></img><img src="' + btnCode +
+                          '" id="codeIco"><img src="' + btnList +
+                          '" id="listIco"><img src="' + btnHr +
+                          '" id="hrIco"></img><img src="' + btnLink +
+                          '" id="linkIco"></img><img src="' + btnImage +
+                          '" id="imgIco"></img><img src="' + btnTable +
+                          '" id="tableIco"></img></center>');
     $("#boldIco").click(function() {
         addTag("**", "**");
     });
